@@ -50,8 +50,8 @@
            href="{{ route('admin.hotels.index') }}">
             <i class="bi bi-building me-2"></i>Hotels
         </a>
-          <a class="nav-link {{ request()->routeIs('admin.hotels.*') ? 'active' : '' }}"
-              href="{{ route('admin.hotels.index') }}">
+        <a class="nav-link {{ request()->routeIs('admin.rooms.*') || request()->routeIs('admin.hotels.rooms.*') ? 'active' : '' }}"
+           href="{{ route('admin.rooms.index') }}">
             <i class="bi bi-door-open me-2"></i>Rooms
         </a>
         <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"

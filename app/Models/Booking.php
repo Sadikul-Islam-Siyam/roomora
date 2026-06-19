@@ -47,6 +47,23 @@ class Booking extends Model
         'cancelled'   => 'danger',
     ];
 
+    const TRANSITION_MAP = [
+        self::STATUS_PENDING    => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
+        self::STATUS_CONFIRMED  => [self::STATUS_CHECKED_IN, self::STATUS_CANCELLED],
+        self::STATUS_CHECKED_IN => [self::STATUS_CHECKED_OUT],
+        self::STATUS_CHECKED_OUT=> [],
+        self::STATUS_CANCELLED  => [],
+    ];
+
+    public static function isValidTransition(string $from, string $to): bool
+    {
+        if ($from === $to) {
+            return true;
+        }
+        $allowed = self::TRANSITION_MAP[$from] ?? [];
+        return in_array($to, $allowed);
+    }
+
     // ── Boot ─────────────────────────────────────────────────
     protected static function boot()
     {
@@ -80,11 +97,7 @@ class Booking extends Model
         return $this->room?->hotel;
     }
 
-    public function getStatusBadgeAttribute(): string
-    {
-        $color = self::STATUS_COLORS[$this->status] ?? 'secondary';
-        return '<span class="badge bg-' . $color . '">' . ucfirst($this->status) . '</span>';
-    }
+
 
     public function getStatusColorAttribute(): string
     {

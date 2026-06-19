@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -35,7 +36,9 @@ return new class extends Migration
             $table->index('star_rating');
             $table->index('is_active');
             $table->index(['city', 'is_active']);
-            $table->fullText(['name', 'city', 'description']);
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->fullText(['name', 'city', 'description']);
+            }
         });
     }
 

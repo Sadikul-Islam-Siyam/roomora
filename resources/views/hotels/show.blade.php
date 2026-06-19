@@ -70,13 +70,15 @@
             <div class="d-flex gap-2 mb-4">
                 <button class="btn btn-outline-danger btn-sm favorite-btn"
                         data-hotel-id="{{ $hotel->id }}"
+                        data-favorited="{{ $isFavorited ? '1' : '0' }}"
                         id="favBtn">
                     <i class="bi {{ $isFavorited ? 'bi-heart-fill' : 'bi-heart' }} me-1"></i>
                     <span id="favLabel">{{ $isFavorited ? 'Saved' : 'Save' }}</span>
                 </button>
-                <button class="btn btn-outline-primary btn-sm compare-btn"
+                <button class="btn {{ $inComparison ? 'btn-primary' : 'btn-outline-primary' }} btn-sm compare-btn"
                         data-hotel-id="{{ $hotel->id }}"
                         data-hotel-name="{{ $hotel->name }}"
+                        data-in-comparison="{{ $inComparison ? '1' : '0' }}"
                         id="compareBtn">
                     <i class="bi bi-bar-chart-steps me-1"></i>
                     <span id="compareLabel">{{ $inComparison ? 'In Comparison' : 'Compare' }}</span>
@@ -239,6 +241,41 @@
                 {{-- ── Tab: Reviews ──────────────────────────────── --}}
                 <div class="tab-pane fade" id="tabReviews">
 
+                    {{-- Review Alerts --}}
+                    @if ($errors->has('review'))
+                        <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center gap-2 mb-3" role="alert" style="background-color: #fef2f2; color: #dc2626; border-left: 4px solid #dc2626; border-radius: 8px;">
+                            <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                            <div class="small fw-semibold">
+                                {{ $errors->first('review') }}
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($errors->has('rating') || $errors->has('title') || $errors->has('comment'))
+                        <div class="alert alert-danger border-0 shadow-sm d-flex flex-column gap-1 mb-3" role="alert" style="background-color: #fef2f2; color: #dc2626; border-left: 4px solid #dc2626; border-radius: 8px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                                <strong class="small fw-semibold">Please correct the following errors:</strong>
+                            </div>
+                            <ul class="mb-0 ps-4 small">
+                                @foreach (['rating', 'title', 'comment'] as $field)
+                                    @if ($errors->has($field))
+                                        <li>{{ $errors->first($field) }}</li>
+                                    @endif
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if (session('success') && Str::contains(session('success'), ['review', 'Review']))
+                        <div class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2 mb-3" role="alert" style="background-color: #f0fdf4; color: #16a34a; border-left: 4px solid #16a34a; border-radius: 8px;">
+                            <i class="bi bi-check-circle-fill fs-5"></i>
+                            <div class="small fw-semibold">
+                                {{ session('success') }}
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Rating Summary --}}
                     @if($avgRating)
                     <div class="row g-3 mb-4">
@@ -367,9 +404,10 @@
                         </a>
                         @auth
                         <button class="btn btn-outline-danger {{ $isFavorited ? 'active' : '' }} favorite-btn"
-                                data-hotel-id="{{ $hotel->id }}">
+                                data-hotel-id="{{ $hotel->id }}"
+                                data-favorited="{{ $isFavorited ? '1' : '0' }}">
                             <i class="bi {{ $isFavorited ? 'bi-heart-fill' : 'bi-heart' }} me-2"></i>
-                            {{ $isFavorited ? 'Saved to Wishlist' : 'Save to Wishlist' }}
+                            <span class="fav-widget-label">{{ $isFavorited ? 'Saved to Wishlist' : 'Save to Wishlist' }}</span>
                         </button>
                         @endauth
                     </div>
@@ -423,22 +461,7 @@
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-// Favorite button
-document.querySelectorAll('.favorite-btn').forEach(btn => {
-    btn.addEventListener('click', async function() {
-        const hotelId = this.dataset.hotelId;
-        try {
-            const res  = await fetch(`/favorites/toggle/${hotelId}`, {
-                method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            const data = await res.json();
-            document.querySelectorAll('.favorite-btn').forEach(b => {
-                b.querySelector('i').className = data.favorited ? 'bi bi-heart-fill me-1' : 'bi bi-heart me-1';
-                if (b.querySelector('span')) b.querySelector('span').textContent = data.favorited ? 'Saved' : 'Save';
-            });
-        } catch(e) {}
-    });
-});
+
 
 // Room availability check on date change
 function checkRoomAvailability() {
@@ -472,5 +495,19 @@ function checkRoomAvailability() {
 
 document.getElementById('roomCheckIn')?.addEventListener('change', checkRoomAvailability);
 document.getElementById('roomCheckOut')?.addEventListener('change', checkRoomAvailability);
+
+// Auto-activate reviews tab if there are review errors or success
+@if($errors->has('review') || $errors->has('rating') || $errors->has('title') || $errors->has('comment') || (session('success') && Str::contains(session('success'), ['review', 'Review'])))
+document.addEventListener("DOMContentLoaded", function() {
+    const reviewTabBtn = document.querySelector('button[data-bs-target="#tabReviews"]');
+    if (reviewTabBtn) {
+        const tab = bootstrap.Tab.getOrCreateInstance(reviewTabBtn);
+        if (tab) {
+            tab.show();
+            reviewTabBtn.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+});
+@endif
 </script>
 @endpush

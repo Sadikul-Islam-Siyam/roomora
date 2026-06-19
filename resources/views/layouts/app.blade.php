@@ -276,30 +276,54 @@ function syncComparisonBar() {
     }
 }
 
-function setFavoriteState(button, favorited) {
-    button.dataset.favorited = favorited ? '1' : '0';
-    const icon = button.querySelector('i');
-    if (icon) {
-        icon.className = favorited ? 'bi bi-heart-fill' : 'bi bi-heart';
-    }
+function setFavoriteState(hotelId, favorited) {
+    document.querySelectorAll(`.favorite-btn[data-hotel-id="${hotelId}"]`).forEach(button => {
+        button.dataset.favorited = favorited ? '1' : '0';
+        button.classList.toggle('active', favorited);
+        const icon = button.querySelector('i');
+        if (icon) {
+            icon.className = favorited ? 'bi bi-heart-fill' : 'bi bi-heart';
+            // If the icon has me-1 or me-2, keep it
+            if (icon.classList.contains('me-1')) {
+                icon.className = favorited ? 'bi bi-heart-fill me-1' : 'bi bi-heart me-1';
+            } else if (icon.classList.contains('me-2')) {
+                icon.className = favorited ? 'bi bi-heart-fill me-2' : 'bi bi-heart me-2';
+            }
+        }
 
-    const label = button.querySelector('#favLabel');
-    if (label) {
-        label.textContent = favorited ? 'Saved' : 'Save';
-    } else {
-        button.lastChild && button.lastChild.nodeType === Node.TEXT_NODE && (button.lastChild.textContent = favorited ? ' Saved' : ' Save');
-    }
+        const label = button.querySelector('#favLabel');
+        const widgetLabel = button.querySelector('.fav-widget-label');
+        if (label) {
+            label.textContent = favorited ? 'Saved' : 'Save';
+        } else if (widgetLabel) {
+            widgetLabel.textContent = favorited ? 'Saved to Wishlist' : 'Save to Wishlist';
+        } else {
+            const span = button.querySelector('span');
+            if (span) {
+                span.textContent = favorited ? 'Saved' : 'Save';
+            } else {
+                button.lastChild && button.lastChild.nodeType === Node.TEXT_NODE && (button.lastChild.textContent = favorited ? ' Saved' : ' Save');
+            }
+        }
+    });
 }
 
-function setCompareState(button, added) {
-    button.dataset.inComparison = added ? '1' : '0';
-    button.classList.toggle('btn-primary', added);
-    button.classList.toggle('btn-outline-primary', !added);
+function setCompareState(hotelId, added) {
+    document.querySelectorAll(`.compare-btn[data-hotel-id="${hotelId}"]`).forEach(button => {
+        button.dataset.inComparison = added ? '1' : '0';
+        button.classList.toggle('btn-primary', added);
+        button.classList.toggle('btn-outline-primary', !added);
 
-    const label = button.querySelector('#compareLabel');
-    if (label) {
-        label.textContent = added ? 'In Comparison' : 'Compare';
-    }
+        const label = button.querySelector('#compareLabel');
+        if (label) {
+            label.textContent = added ? 'In Comparison' : 'Compare';
+        } else {
+            const span = button.querySelector('span');
+            if (span) {
+                span.textContent = added ? 'In Comparison' : 'Compare';
+            }
+        }
+    });
 }
 
 syncComparisonBar();
@@ -321,7 +345,7 @@ document.addEventListener('click', async event => {
         });
 
         const data = await response.json();
-        setFavoriteState(favoriteBtn, data.favorited);
+        setFavoriteState(favoriteBtn.dataset.hotelId, data.favorited);
         return;
     }
 
@@ -337,7 +361,7 @@ document.addEventListener('click', async event => {
             return;
         }
 
-        setCompareState(compareBtn, data.added);
+        setCompareState(compareBtn.dataset.hotelId, data.added);
         syncComparisonBar();
     }
 });

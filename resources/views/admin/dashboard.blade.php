@@ -163,7 +163,7 @@
                             </td>
                             <td class="small">{{ $booking->check_in->format('M j, Y') }}</td>
                             <td class="small fw-semibold">৳{{ number_format($booking->total_price) }}</td>
-                            <td>{!! $booking->status_badge !!}</td>
+                            <td><x-status-badge :status="$booking->status" /></td>
                         </tr>
                         @endforeach
                     </tbody>

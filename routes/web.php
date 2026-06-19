@@ -31,9 +31,9 @@ Route::prefix('hotels')->name('hotels.')->group(function () {
 // ═══════════════════════════════════════════════════════
 Route::middleware('guest')->group(function () {
     Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:login');
     Route::get('/login',     [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login',    [AuthController::class, 'login']);
+    Route::post('/login',    [AuthController::class, 'login'])->middleware('throttle:login');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/',            [ProfileController::class, 'show'])->name('show');
         Route::get('/edit',        [ProfileController::class, 'edit'])->name('edit');
         Route::put('/',            [ProfileController::class, 'update'])->name('update');
-        Route::put('/password',    [ProfileController::class, 'updatePassword'])->name('password');
+        Route::put('/password',    [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('password');
         Route::get('/bookings',    [ProfileController::class, 'bookingHistory'])->name('bookings');
     });
 
@@ -99,12 +99,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('hotels', AdminHotelController::class);
     Route::post('/hotels/{hotel}/toggle', [AdminHotelController::class, 'toggle'])->name('hotels.toggle');
 
-    // Rooms CRUD (nested under hotels)
+    // Rooms CRUD
+    Route::get('/rooms', [AdminRoomController::class, 'index'])->name('rooms.index');
     Route::resource('hotels.rooms', AdminRoomController::class)->shallow();
 
     // Users
     Route::resource('users', AdminUserController::class)->except(['create', 'store']);
-    Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggle'])->name('users.toggle');
+    Route::post('/users/{user}/toggle', [AdminUserController::class, 'toggle'])->name('users.toggle')->withTrashed();
 
     // Bookings
     Route::get('/bookings',              [AdminBookingController::class, 'index'])->name('bookings.index');

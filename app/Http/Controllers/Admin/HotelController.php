@@ -58,6 +58,21 @@ class HotelController extends Controller
             ->with('success', 'Hotel "' . $hotel->name . '" created successfully.');
     }
 
+    public function show(Hotel $hotel)
+    {
+        $hotel->loadCount(['rooms', 'bookings']);
+        $hotel->load([
+            'rooms' => function ($q) {
+                $q->withCount('bookings');
+            },
+            'bookings' => function ($q) {
+                $q->with(['user', 'room'])->latest()->limit(5);
+            }
+        ]);
+
+        return view('admin.hotels.show', compact('hotel'));
+    }
+
     public function edit(Hotel $hotel)
     {
         return view('admin.hotels.edit', compact('hotel'));

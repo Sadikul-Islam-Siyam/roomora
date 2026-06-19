@@ -24,7 +24,7 @@
                     <div class="col-md-6 form-check ms-2 align-self-end"><input class="form-check-input" type="checkbox" name="is_available" value="1" checked id="availableRoom"><label class="form-check-label" for="availableRoom">Visible and available</label></div>
                 </div>
                 <div class="mt-4 d-flex justify-content-end gap-2">
-                    <a href="{{ route('admin.hotels.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                    <a href="{{ route('admin.hotels.rooms.index', $hotel) }}" class="btn btn-outline-secondary">Cancel</a>
                     <button class="btn btn-primary" type="submit">Save Room</button>
                 </div>
             </form>

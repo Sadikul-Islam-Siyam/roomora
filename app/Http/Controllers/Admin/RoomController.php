@@ -15,13 +15,17 @@ class RoomController extends Controller
         $this->middleware(['auth', 'admin']);
     }
 
-    public function index(Request $request)
+    public function index(Request $request, Hotel $hotel = null)
     {
         $query = Room::with('hotel')->withCount('bookings');
 
-        if ($hotelId = $request->get('hotel_id')) {
+        if ($hotel && $hotel->exists) {
+            $query->where('hotel_id', $hotel->id);
+            $request->merge(['hotel_id' => $hotel->id]);
+        } elseif ($hotelId = $request->get('hotel_id')) {
             $query->where('hotel_id', $hotelId);
         }
+
         if ($type = $request->get('type')) {
             $query->where('room_type', $type);
         }

@@ -68,8 +68,7 @@
                         <div class="mt-2">
                             <form action="{{ route('comparisons.toggle', $hotel) }}" method="POST" class="d-inline">
                                 @csrf
-                                <button class="btn btn-outline-light btn-sm" type="submit"
-                                        onclick="return confirm('Remove from comparison?')">
+                                <button class="btn btn-outline-light btn-sm" type="submit">
                                     <i class="bi bi-x"></i> Remove
                                 </button>
                             </form>
@@ -100,21 +99,7 @@
                     @endforeach
                 </tr>
 
-                {{-- Guest Rating --}}
-                <tr>
-                    <td class="row-label">Guest Rating</td>
-                    @php $maxRating = $hotels->max('reviews_avg_rating'); @endphp
-                    @foreach($hotels as $hotel)
-                    <td class="{{ $hotel->reviews_avg_rating == $maxRating && $maxRating > 0 ? 'compare-best' : '' }}">
-                        @if($hotel->reviews_avg_rating)
-                        <span class="fw-bold text-primary" style="font-size:1.3rem">{{ number_format($hotel->reviews_avg_rating,1) }}</span>
-                        <div class="small text-muted">{{ $hotel->reviews_count }} reviews</div>
-                        @else
-                        <span class="text-muted small">No reviews</span>
-                        @endif
-                    </td>
-                    @endforeach
-                </tr>
+
 
                 {{-- Check-in / Check-out --}}
                 <tr>

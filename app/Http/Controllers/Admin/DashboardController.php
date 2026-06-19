@@ -63,11 +63,14 @@ class DashboardController extends Controller
             ->get();
 
         // ── Room Type Popularity ─────────────────────────────
-        $roomTypeStats = Room::select('room_type')
-            ->withCount(['bookings as booking_count' => fn($q) =>
-                $q->whereNotIn('status', ['cancelled'])
-            ])
-            ->groupBy('room_type')
+        $roomTypeStats = Room::select('rooms.room_type', DB::raw('COUNT(bookings.id) as booking_count'))
+            ->leftJoin('bookings', function($join) {
+                $join->on('rooms.id', '=', 'bookings.room_id')
+                     ->whereNotIn('bookings.status', ['cancelled'])
+                     ->whereNull('bookings.deleted_at');
+            })
+            ->whereNull('rooms.deleted_at')
+            ->groupBy('rooms.room_type')
             ->orderByDesc('booking_count')
             ->get();
 

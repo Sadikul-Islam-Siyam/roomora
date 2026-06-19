@@ -23,7 +23,7 @@
             <div>
                 <div class="text-white-50 small mb-1">Booking Reference</div>
                 <h2 class="fw-bold mb-1">{{ $booking->booking_reference }}</h2>
-                <div>{!! $booking->status_badge !!}</div>
+                <div><x-status-badge :status="$booking->status" /></div>
             </div>
             <div class="d-flex gap-2">
                 @if($booking->is_paid || $booking->status === 'confirmed')

@@ -185,7 +185,7 @@ function syncCompareBar() {
     }
 }
 
-async function loadHotels(url) {
+async function loadHotels(url, pushState = true) {
     loadingSpinner.style.display = 'block';
     hotelCards.classList.add('d-none');
     paginationLinks.classList.add('d-none');
@@ -199,6 +199,9 @@ async function loadHotels(url) {
         paginationLinks.innerHTML = data.pagination;
         resultsCount.textContent = data.total;
         syncCompareBar();
+        if (pushState) {
+            history.pushState({}, '', url);
+        }
     } catch (error) {
         console.error(error);
     } finally {
@@ -226,45 +229,8 @@ paginationLinks.addEventListener('click', function (event) {
     loadHotels(link.href);
 });
 
-hotelCards.addEventListener('click', async function (event) {
-    const favoriteBtn = event.target.closest('.favorite-btn');
-    const compareBtn = event.target.closest('.compare-btn');
-
-    if (favoriteBtn) {
-        event.preventDefault();
-        const hotelId = favoriteBtn.dataset.hotelId;
-        const icon = favoriteBtn.querySelector('i');
-
-        const response = await fetch(`/favorites/toggle/${hotelId}`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
-        });
-
-        const data = await response.json();
-        icon.className = data.favorited ? 'bi bi-heart-fill' : 'bi bi-heart';
-        favoriteBtn.dataset.favorited = data.favorited ? '1' : '0';
-    }
-
-    if (compareBtn) {
-        event.preventDefault();
-        const hotelId = compareBtn.dataset.hotelId;
-
-        const response = await fetch(`/compare/toggle/${hotelId}`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
-        });
-
-        const data = await response.json();
-        if (!data.success) {
-            alert(data.message);
-            return;
-        }
-
-        compareBtn.dataset.inComparison = data.added ? '1' : '0';
-        compareBtn.classList.toggle('btn-primary', data.added);
-        compareBtn.classList.toggle('btn-outline-primary', !data.added);
-        syncCompareBar();
-    }
+window.addEventListener('popstate', function () {
+    loadHotels(window.location.href, false);
 });
 
 syncCompareBar();

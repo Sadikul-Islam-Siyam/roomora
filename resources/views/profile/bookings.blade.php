@@ -34,7 +34,7 @@
                         </td>
                         <td class="small">{{ $booking->check_in->format('M d, Y') }} - {{ $booking->check_out->format('M d, Y') }}</td>
                         <td>৳{{ number_format($booking->total_price) }}</td>
-                        <td>{!! $booking->status_badge !!}</td>
+                        <td><x-status-badge :status="$booking->status" /></td>
                         <td class="text-end">
                             <a href="{{ route('bookings.show', $booking) }}" class="btn btn-sm btn-outline-primary">View</a>
                         </td>

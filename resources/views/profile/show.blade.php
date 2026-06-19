@@ -47,7 +47,7 @@
                                     <td><a href="{{ route('bookings.show', $booking) }}" class="text-decoration-none fw-semibold">{{ $booking->booking_reference }}</a></td>
                                     <td>{{ $booking->room->hotel->name ?? '—' }}</td>
                                     <td class="small">{{ $booking->check_in->format('M d, Y') }} - {{ $booking->check_out->format('M d, Y') }}</td>
-                                    <td>{!! $booking->status_badge !!}</td>
+                                    <td><x-status-badge :status="$booking->status" /></td>
                                 </tr>
                                 @empty
                                 <tr><td colspan="4" class="text-center text-muted py-4">No bookings yet.</td></tr>

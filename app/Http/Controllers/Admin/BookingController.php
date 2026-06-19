@@ -22,8 +22,10 @@ class BookingController extends Controller
             $query->where('status', $status);
         }
         if ($search = $request->get('search')) {
-            $query->where('booking_reference', 'like', "%{$search}%")
-                  ->orWhereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"));
+            $query->where(function ($q) use ($search) {
+                $q->where('booking_reference', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+            });
         }
         if ($from = $request->get('from')) {
             $query->whereDate('check_in', '>=', $from);
@@ -53,18 +55,31 @@ class BookingController extends Controller
             'status' => ['required', 'in:pending,confirmed,checked_in,checked_out,cancelled'],
         ]);
 
-        $booking->update(['status' => $request->status]);
+        $newStatus = $request->status;
 
-        DB::table('booking_logs')->insert([
-            'booking_id'  => $booking->id,
-            'changed_by'  => $request->user()->id,
-            'from_status' => $oldStatus,
-            'to_status'   => $request->status,
-            'created_at'  => now(),
-            'updated_at'  => now(),
-        ]);
+        if (!Booking::isValidTransition($oldStatus, $newStatus)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => "Invalid transition from {$oldStatus} to {$newStatus}."
+                ], 422);
+            }
+            return back()->withErrors(['status' => "Invalid transition from {$oldStatus} to {$newStatus}."]);
+        }
 
-        return back()->with('success', 'Booking status updated to ' . ucfirst($request->status) . '.');
+        if ($oldStatus !== $newStatus) {
+            DB::transaction(function () use ($booking, $oldStatus, $newStatus) {
+                $booking->update(['status' => $newStatus]);
+
+                \App\Models\BookingLog::create([
+                    'booking_id'  => $booking->id,
+                    'changed_by'  => auth()->id(),
+                    'from_status' => $oldStatus,
+                    'to_status'   => $newStatus,
+                ]);
+            });
+        }
+
+        return back()->with('success', 'Booking status updated to ' . ucfirst($newStatus) . '.');
     }
 
     public function reports(Request $request)

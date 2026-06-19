@@ -26,7 +26,7 @@
                                 <div class="fw-semibold">{{ $booking->booking_reference }}</div>
                                 <div class="text-muted small">{{ $booking->room->hotel->name ?? '—' }}</div>
                             </div>
-                            <span>{!! $booking->status_badge !!}</span>
+                            <span><x-status-badge :status="$booking->status" /></span>
                         </li>
                         @empty
                         <li class="list-group-item text-muted">No bookings.</li>

@@ -18,8 +18,10 @@ class UserController extends Controller
         $query = User::withCount(['bookings', 'reviews']);
 
         if ($search = $request->get('search')) {
-            $query->where('name', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
+            });
         }
 
         if ($role = $request->get('role')) {
@@ -65,6 +67,13 @@ class UserController extends Controller
 
     public function toggle(User $user)
     {
+        if ($user->id === auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot deactivate your own account.'
+            ], 422);
+        }
+
         // Toggle between user and deactivated (soft delete mechanism)
         if ($user->trashed()) {
             $user->restore();

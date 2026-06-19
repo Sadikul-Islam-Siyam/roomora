@@ -15,13 +15,25 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            throw new \RuntimeException('Database seeding is disabled in production environment for security.');
+        }
+
         $faker = fake();
 
         // ── Admin User ───────────────────────────────────────
+        $adminPassword = env('ADMIN_SEED_PASSWORD');
+        if (empty($adminPassword)) {
+            $adminPassword = \Illuminate\Support\Str::random(16);
+            if ($this->command) {
+                $this->command->warn("ADMIN_SEED_PASSWORD is not set. Generated random admin password: {$adminPassword}");
+            }
+        }
+
         $admin = User::create([
             'name'     => 'Admin User',
             'email'    => 'admin@roomora.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make($adminPassword),
             'role'     => 'admin',
             'phone'    => '+8801700000000',
         ]);
@@ -82,11 +94,13 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($hotels as $hotel) {
+            $roomNumberCounter = 101 + (($hotel->id - 1) * 100);
             foreach ($roomTemplates as $template) {
                 Room::create(array_merge($template, [
                     'hotel_id'     => $hotel->id,
                     'is_available' => true,
                     'price'        => round($template['price'] * ($hotel->star_rating / 4), 2),
+                    'room_number'  => (string) $roomNumberCounter++,
                 ]));
             }
         }

@@ -13,7 +13,7 @@
                             <h4 class="fw-bold mb-1">{{ $booking->booking_reference }}</h4>
                             <p class="text-muted mb-0">{{ $booking->guest_name }} · {{ $booking->guest_email }}</p>
                         </div>
-                        <span>{!! $booking->status_badge !!}</span>
+                        <span><x-status-badge :status="$booking->status" /></span>
                     </div>
                     <dl class="row mb-0">
                         <dt class="col-sm-4">Hotel</dt><dd class="col-sm-8">{{ $booking->room->hotel->name ?? '—' }}</dd>

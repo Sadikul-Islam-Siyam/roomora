@@ -172,6 +172,13 @@ class BookingController extends Controller
     {
         $this->authorize('view', $booking);
 
+        if ($booking->is_paid || $booking->status === Booking::STATUS_CANCELLED) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'This booking has already been paid or is cancelled.'], 422);
+            }
+            return back()->with('error', 'This booking has already been paid or is cancelled.')->withErrors(['status' => 'This booking has already been paid or is cancelled.']);
+        }
+
         $data = $request->validate([
             'payment_method' => ['required', 'string', 'max:100'],
             'billing_address' => ['nullable', 'string', 'max:1000'],
@@ -203,26 +210,39 @@ class BookingController extends Controller
             $booking->save();
         }
 
-        // Record the payment
-        $payment = $booking->payments()->create([
-            'amount' => $booking->total_price,
-            'currency' => 'BDT',
-            'method' => $data['payment_method'],
-            'gateway' => $request->get('gateway', 'manual'),
-            'transaction_id' => $request->get('transaction_id'),
-            'status' => 'success',
-            'metadata' => $request->except(['_token', 'payment_method', 'billing_address', 'transaction_id']),
-            'paid_at' => now(),
-        ]);
+        DB::transaction(function () use ($request, $booking, $data) {
+            $lockedBooking = Booking::whereKey($booking->id)->lockForUpdate()->firstOrFail();
 
-        // Update booking status
-        $booking->update([
-            'payment_method' => $data['payment_method'],
-            'billing_address' => $data['billing_address'] ?? $booking->billing_address,
-            'is_paid' => true,
-            'paid_at' => now(),
-            'status' => 'confirmed',
-        ]);
+            if ($lockedBooking->is_paid || $lockedBooking->status === Booking::STATUS_CANCELLED) {
+                throw ValidationException::withMessages([
+                    'status' => 'This booking has already been paid or is cancelled.',
+                ]);
+            }
+
+            // Record the payment
+            $lockedBooking->payments()->create([
+                'amount' => $lockedBooking->total_price,
+                'currency' => 'BDT',
+                'method' => $data['payment_method'],
+                'gateway' => $request->get('gateway', 'manual'),
+                'transaction_id' => $request->get('transaction_id'),
+                'status' => 'success',
+                'metadata' => $request->except(['_token', 'payment_method', 'billing_address', 'transaction_id']),
+                'paid_at' => now(),
+            ]);
+
+            // Update booking status
+            $lockedBooking->update([
+                'payment_method' => $data['payment_method'],
+                'billing_address' => $data['billing_address'] ?? $lockedBooking->billing_address,
+                'is_paid' => true,
+                'paid_at' => now(),
+                'status' => Booking::STATUS_CONFIRMED,
+            ]);
+        });
+
+        // Refresh model relations/data for emails
+        $booking->refresh();
 
         // Send confirmation email to guest and admin
         try {

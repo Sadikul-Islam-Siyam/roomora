@@ -2,10 +2,15 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+// Schedule commands
+Schedule::command('bookings:expire-pending')->everyFiveMinutes();
+Schedule::command('bookings:auto-transition-status')->daily();
 
 use App\Models\Booking;
 

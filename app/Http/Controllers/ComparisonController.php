@@ -50,10 +50,13 @@ class ComparisonController extends Controller
             // Limit to MAX_COMPARE
             $count = Comparison::where('user_id', $user->id)->count();
             if ($count >= self::MAX_COMPARE) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You can compare up to ' . self::MAX_COMPARE . ' hotels at a time.',
-                ], 422);
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You can compare up to ' . self::MAX_COMPARE . ' hotels at a time.',
+                    ], 422);
+                }
+                return back()->with('error', 'You can compare up to ' . self::MAX_COMPARE . ' hotels at a time.');
             }
 
             Comparison::create(['user_id' => $user->id, 'hotel_id' => $hotel->id]);
@@ -62,12 +65,16 @@ class ComparisonController extends Controller
 
         $count = Comparison::where('user_id', $user->id)->count();
 
-        return response()->json([
-            'success' => true,
-            'added'   => $added,
-            'count'   => $count,
-            'message' => $added ? 'Added to comparison.' : 'Removed from comparison.',
-        ]);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'added'   => $added,
+                'count'   => $count,
+                'message' => $added ? 'Added to comparison.' : 'Removed from comparison.',
+            ]);
+        }
+
+        return back()->with('success', $added ? 'Added to comparison.' : 'Removed from comparison.');
     }
 
     public function clear()
