@@ -15,14 +15,14 @@
         @forelse($hotels as $hotel)
         <div class="col-md-6 col-xl-4">
             <div class="card hotel-card shadow-sm h-100 border-0">
-                <img src="{{ $hotel->image_url }}" class="card-img-top" alt="{{ $hotel->name }}" style="height: 210px; object-fit: cover;">
+                <img src="{{ $hotel->image_url }}" class="card-img-top" alt="{{ $hotel->name }}" style="height: 210px; object-fit: cover;" loading="lazy">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title mb-1">{{ $hotel->name }}</h5>
                     <p class="text-muted small mb-2">{{ $hotel->city }}</p>
                     <p class="small text-muted flex-grow-1">{{ \Illuminate\Support\Str::limit($hotel->description, 120) }}</p>
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <div>
-                            <div class="fw-semibold text-primary">৳{{ number_format($hotel->min_price ?? 0) }}</div>
+                            <div class="fw-semibold text-primary">BDT {{ number_format($hotel->min_price ?? 0) }}</div>
                             <div class="small text-muted">per night</div>
                         </div>
                         <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-primary btn-sm">View</a>

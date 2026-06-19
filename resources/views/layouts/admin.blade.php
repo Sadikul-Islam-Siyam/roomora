@@ -61,9 +61,8 @@
         <a class="nav-link {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}"
            href="{{ route('admin.bookings.index') }}">
             <i class="bi bi-calendar-check me-2"></i>Bookings
-            @php $pending = \App\Models\Booking::where('status','pending')->count() @endphp
-            @if($pending > 0)
-            <span class="badge bg-warning text-dark ms-auto">{{ $pending }}</span>
+            @if(isset($pendingBookingsCount) && $pendingBookingsCount > 0)
+            <span class="badge bg-warning text-dark ms-auto">{{ $pendingBookingsCount }}</span>
             @endif
         </a>
 

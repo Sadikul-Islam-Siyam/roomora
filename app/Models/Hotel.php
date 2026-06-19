@@ -87,6 +87,16 @@ class Hotel extends Model
             ?? $this->availableRooms()->min('price');
     }
 
+    public function getMinPriceForDates(?string $checkIn, ?string $checkOut): ?float
+    {
+        if ($checkIn && $checkOut) {
+            return $this->rooms()
+                ->availableForDates($checkIn, $checkOut)
+                ->min('price');
+        }
+        return $this->min_price;
+    }
+
     // ── Relationships ────────────────────────────────────────
     public function rooms()
     {

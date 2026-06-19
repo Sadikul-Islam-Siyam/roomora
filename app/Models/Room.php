@@ -52,6 +52,22 @@ class Room extends Model
         return $query->whereBetween('price', [$min, $max]);
     }
 
+    public function scopeAvailableForDates($query, $checkIn, $checkOut)
+    {
+        return $query->where('is_available', true)
+            ->where('quantity', '>', 0)
+            ->where(function ($q) use ($checkIn, $checkOut) {
+                $q->whereRaw('quantity > (
+                    select count(*) from bookings
+                    where bookings.room_id = rooms.id
+                    and bookings.deleted_at is null
+                    and status in ("pending", "confirmed", "checked_in")
+                    and check_in < ?
+                    and check_out > ?
+                )', [$checkOut, $checkIn]);
+            });
+    }
+
     // ── Helpers ──────────────────────────────────────────────
     /**
      * Check if this room is available for the given date range.
@@ -63,17 +79,38 @@ class Room extends Model
 
         $bookedCount = $this->bookings()
             ->whereIn('status', ['pending', 'confirmed', 'checked_in'])
-            ->where(function ($q) use ($checkIn, $checkOut) {
-                $q->whereBetween('check_in', [$checkIn, $checkOut])
-                  ->orWhereBetween('check_out', [$checkIn, $checkOut])
-                  ->orWhere(function ($q2) use ($checkIn, $checkOut) {
-                      $q2->where('check_in', '<=', $checkIn)
-                         ->where('check_out', '>=', $checkOut);
-                  });
-            })
+            ->where('check_in', '<', $checkOut)
+            ->where('check_out', '>', $checkIn)
             ->count();
 
         return $bookedCount < $this->quantity;
+    }
+
+    /**
+     * Get remaining quantity of rooms for searched dates or today
+     */
+    public function getRemainingQuantityAttribute(): int
+    {
+        $checkIn = request('check_in');
+        $checkOut = request('check_out');
+
+        if ($checkIn && $checkOut) {
+            $bookedCount = $this->bookings()
+                ->whereIn('status', ['pending', 'confirmed', 'checked_in'])
+                ->where('check_in', '<', $checkOut)
+                ->where('check_out', '>', $checkIn)
+                ->count();
+            return max(0, $this->quantity - $bookedCount);
+        }
+
+        $today = now()->toDateString();
+        $tomorrow = now()->addDay()->toDateString();
+        $bookedCount = $this->bookings()
+            ->whereIn('status', ['pending', 'confirmed', 'checked_in'])
+            ->where('check_in', '<', $tomorrow)
+            ->where('check_out', '>', $today)
+            ->count();
+        return max(0, $this->quantity - $bookedCount);
     }
 
     /**

@@ -155,20 +155,20 @@
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold">Check-in</label>
                                     <input type="date" id="roomCheckIn" class="form-control form-control-sm"
-                                           min="{{ today()->addDay()->format('Y-m-d') }}"
-                                           value="{{ today()->addDay()->format('Y-m-d') }}">
+                                           min="{{ today()->format('Y-m-d') }}"
+                                           value="{{ request('check_in', today()->addDay()->format('Y-m-d')) }}">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold">Check-out</label>
                                     <input type="date" id="roomCheckOut" class="form-control form-control-sm"
-                                           min="{{ today()->addDays(2)->format('Y-m-d') }}"
-                                           value="{{ today()->addDays(2)->format('Y-m-d') }}">
+                                           min="{{ today()->format('Y-m-d') }}"
+                                           value="{{ request('check_out', today()->addDays(2)->format('Y-m-d')) }}">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold">Guests</label>
                                     <select id="roomGuests" class="form-select form-select-sm">
-                                        @for($i = 1; $i <= 8; $i++)
-                                        <option value="{{ $i }}">{{ $i }} Guest{{ $i > 1 ? 's' : '' }}</option>
+                                        @for($i = 1; $i <= 10; $i++)
+                                        <option value="{{ $i }}" {{ request('guests', 2) == $i ? 'selected' : '' }}>{{ $i }} Guest{{ $i > 1 ? 's' : '' }}</option>
                                         @endfor
                                     </select>
                                 </div>
@@ -181,23 +181,29 @@
                         <div class="row g-0">
                             <div class="col-md-3">
                                 <img src="{{ $room->image_url }}" alt="{{ $room->type_name }}"
-                                     class="img-fluid h-100" style="object-fit:cover;min-height:160px">
+                                     class="img-fluid h-100" style="object-fit:cover;min-height:160px" loading="lazy">
                             </div>
                             <div class="col-md-9">
                                 <div class="p-3 d-flex flex-column h-100">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
-                                            <h6 class="fw-bold mb-1">{{ $room->type_name }}</h6>
+                                            <h6 class="fw-bold mb-1">
+                                                {{ $room->type_name }}
+                                                @if($room->remaining_quantity <= 3)
+                                                <span class="badge bg-danger text-white ms-2">Only {{ $room->remaining_quantity }} left!</span>
+                                                @endif
+                                            </h6>
                                             <span class="text-muted small">
                                                 <i class="bi bi-people me-1"></i>Up to {{ $room->capacity }} guests
                                                 @if($room->size_sqm)
                                                 · <i class="bi bi-arrows-fullscreen me-1"></i>{{ $room->size_sqm }} m²
                                                 @endif
                                             </span>
+                                            <div class="text-success small mt-1"><i class="bi bi-check-circle me-1"></i>Free cancellation before check-in</div>
                                         </div>
                                         <div class="text-end">
                                             <div style="font-size:1.4rem;font-weight:800;color:#1a56db">
-                                                ৳{{ number_format($room->price) }}
+                                                BDT {{ number_format($room->price) }}
                                             </div>
                                             <div class="text-muted" style="font-size:.75rem">per night</div>
                                         </div>
@@ -214,12 +220,12 @@
                                     <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
                                         <div id="availMsg_{{ $room->id }}" class="small"></div>
                                         @auth
-                                        <a href="{{ route('bookings.create', $room) }}?check_in={{ today()->addDay()->format('Y-m-d') }}&check_out={{ today()->addDays(2)->format('Y-m-d') }}"
+                                        <a href="{{ route('bookings.create', $room) }}?check_in={{ request('check_in', today()->addDay()->format('Y-m-d')) }}&check_out={{ request('check_out', today()->addDays(2)->format('Y-m-d')) }}&guests={{ request('guests', 2) }}"
                                            class="btn btn-primary btn-sm book-room-btn"
                                            data-room-id="{{ $room->id }}"
                                            data-avail-url="{{ route('rooms.availability', $room) }}">
-                                            Book Now
-                                        </a>
+                                             Book Now
+                                         </a>
                                         @else
                                         <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">
                                             Login to Book
@@ -389,10 +395,13 @@
                     <i class="bi bi-calendar-check me-2"></i>Book a Room
                 </div>
                 <div class="card-body">
-                    @if($hotel->min_price)
+                    @php
+                        $minPriceForDates = $hotel->getMinPriceForDates(request('check_in'), request('check_out'));
+                    @endphp
+                    @if($minPriceForDates || $hotel->min_price)
                     <p class="text-muted small mb-2">Starting from</p>
                     <p class="mb-3">
-                        <span style="font-size:1.8rem;font-weight:800;color:#1a56db">৳{{ number_format($hotel->min_price) }}</span>
+                        <span style="font-size:1.8rem;font-weight:800;color:#1a56db">BDT {{ number_format($minPriceForDates ?: $hotel->min_price) }}</span>
                         <span class="text-muted">/night</span>
                     </p>
                     @endif
@@ -441,7 +450,7 @@
                                         {{ str_repeat('★', floor($related->star_rating)) }}
                                     </div>
                                     @if($related->min_price)
-                                    <div class="small text-primary fw-bold">৳{{ number_format($related->min_price) }}</div>
+                                    <div class="small text-primary fw-bold">BDT {{ number_format($related->min_price) }}</div>
                                     @endif
                                 </div>
                             </div>
@@ -467,6 +476,7 @@ const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 function checkRoomAvailability() {
     const checkIn  = document.getElementById('roomCheckIn')?.value;
     const checkOut = document.getElementById('roomCheckOut')?.value;
+    const guests   = document.getElementById('roomGuests')?.value || 1;
     if (!checkIn || !checkOut) return;
 
     document.querySelectorAll('.book-room-btn').forEach(async btn => {
@@ -483,18 +493,23 @@ function checkRoomAvailability() {
             const data = await res.json();
             if (msgEl) {
                 msgEl.innerHTML = data.available
-                    ? `<span class="text-success"><i class="bi bi-check-circle"></i> Available · ${data.nights} nights · ৳${data.total_price.toLocaleString()}</span>`
+                    ? `<span class="text-success"><i class="bi bi-check-circle"></i> Available · ${data.nights} nights · BDT ${data.total_price.toLocaleString()}</span>`
                     : `<span class="text-danger"><i class="bi bi-x-circle"></i> Not available</span>`;
             }
-            // Update book button href
-            const newHref = btn.href.replace(/check_in=[^&]*/, `check_in=${checkIn}`).replace(/check_out=[^&]*/, `check_out=${checkOut}`);
-            btn.href = newHref;
+            // Update book button href with all inputs (dates & guest count)
+            const urlObj = new URL(btn.href, window.location.origin);
+            urlObj.searchParams.set('check_in', checkIn);
+            urlObj.searchParams.set('check_out', checkOut);
+            urlObj.searchParams.set('guests', guests);
+            btn.href = urlObj.pathname + urlObj.search;
         } catch(e) {}
     });
 }
 
 document.getElementById('roomCheckIn')?.addEventListener('change', checkRoomAvailability);
 document.getElementById('roomCheckOut')?.addEventListener('change', checkRoomAvailability);
+document.getElementById('roomGuests')?.addEventListener('change', checkRoomAvailability);
+document.addEventListener('DOMContentLoaded', checkRoomAvailability);
 
 // Auto-activate reviews tab if there are review errors or success
 @if($errors->has('review') || $errors->has('rating') || $errors->has('title') || $errors->has('comment') || (session('success') && Str::contains(session('success'), ['review', 'Review'])))

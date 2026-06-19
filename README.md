@@ -379,3 +379,21 @@ npm run build  # production
 ```
 
 Otherwise all CSS/JS is loaded from CDN (Bootstrap 5, Chart.js, Bootstrap Icons) — no build step required.
+
+---
+
+## 11. Task Scheduler & Automation Setup
+
+This application registers automation commands under `routes/console.php` (such as expiring pending bookings or auto-transitioning booking statuses). To run these automatically:
+
+### Production Environment (Cron)
+Add the following entry to your server's crontab (running as the user that owns the web server files):
+```bash
+* * * * * cd /path-to-roomora && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### Local / Development Environment
+If you are running locally and want to simulate the scheduler:
+```bash
+php artisan schedule:work
+```

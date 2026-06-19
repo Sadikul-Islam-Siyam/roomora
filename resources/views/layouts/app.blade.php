@@ -54,20 +54,37 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navMenu">
-            {{-- Search bar --}}
-            <form class="d-flex mx-auto position-relative" style="max-width:400px; width:100%"
+            @if(!request()->routeIs('login') && !request()->routeIs('register') && !request()->is('login') && !request()->is('register'))
+            <form class="d-flex flex-column flex-lg-row mx-auto position-relative align-items-stretch align-items-lg-center gap-2 my-2 my-lg-0 w-100" style="max-width:700px;"
                   action="{{ route('hotels.index') }}" method="GET">
-                <input class="form-control me-2" type="search" name="search" id="navSearch"
-                       placeholder="Search hotels, cities..." value="{{ request('search') }}"
-                       autocomplete="off">
-                <button class="btn btn-primary" type="submit">
-                    <i class="bi bi-search"></i>
-                </button>
-                {{-- AJAX Suggestions dropdown --}}
-                <ul id="searchSuggestions"
-                    class="list-group position-absolute top-100 start-0 w-100 shadow d-none"
-                    style="z-index:9999"></ul>
+                <div class="position-relative flex-grow-1">
+                    <input class="form-control form-control-sm" type="search" name="search" id="navSearch"
+                           placeholder="Search hotels, cities..." value="{{ request('search') }}"
+                           autocomplete="off" style="width:100%;">
+                    {{-- AJAX Suggestions dropdown --}}
+                    <ul id="searchSuggestions"
+                        class="list-group position-absolute top-100 start-0 shadow d-none w-100"
+                        style="z-index:9999;"></ul>
+                </div>
+                <div class="d-flex gap-1 flex-grow-1">
+                    <input class="form-control form-control-sm w-50" type="date" name="check_in" id="navCheckIn"
+                           value="{{ request('check_in', today()->addDay()->format('Y-m-d')) }}" title="Check-in">
+                    <input class="form-control form-control-sm w-50" type="date" name="check_out" id="navCheckOut"
+                           value="{{ request('check_out', today()->addDays(2)->format('Y-m-d')) }}" title="Check-out">
+                </div>
+                <div class="d-flex gap-1">
+                    <select name="guests" class="form-select form-select-sm" style="min-width: 100px;" title="Guests">
+                        @for($i=1; $i<=10; $i++)
+                            <option value="{{ $i }}" {{ request('guests', 2) == $i ? 'selected' : '' }}>{{ $i }} {{ Str::plural('Guest', $i) }}</option>
+                        @endfor
+                    </select>
+                    <button class="btn btn-primary btn-sm px-3" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
             </form>
+            @endif
+
 
             <ul class="navbar-nav ms-auto align-items-center gap-1">
                 <li class="nav-item">
@@ -328,6 +345,18 @@ function setCompareState(hotelId, added) {
 
 syncComparisonBar();
 
+const navCheckIn = document.getElementById('navCheckIn');
+const navCheckOut = document.getElementById('navCheckOut');
+if (navCheckIn && navCheckOut) {
+    navCheckIn.addEventListener('change', () => {
+        if (navCheckOut.value <= navCheckIn.value) {
+            const nextDate = new Date(navCheckIn.value);
+            nextDate.setDate(nextDate.getDate() + 1);
+            navCheckOut.value = nextDate.toISOString().split('T')[0];
+        }
+    });
+}
+
 document.addEventListener('click', async event => {
     const favoriteBtn = event.target.closest('.favorite-btn');
     const compareBtn = event.target.closest('.compare-btn');
@@ -338,31 +367,82 @@ document.addEventListener('click', async event => {
 
     event.preventDefault();
 
-    if (favoriteBtn) {
-        const response = await fetch(`/favorites/toggle/${favoriteBtn.dataset.hotelId}`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'X-Requested-With': 'XMLHttpRequest' },
-        });
+    const showError = (message) => {
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'position-fixed bottom-0 end-0 p-3';
+            container.style.zIndex = '1100';
+            document.body.appendChild(container);
+        }
+        const toastId = 'toast_' + Date.now();
+        container.innerHTML += `
+            <div id="${toastId}" class="toast align-items-center text-white bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+              <div class="d-flex">
+                <div class="toast-body">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i> ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+              </div>
+            </div>`;
+        setTimeout(() => {
+            const toastEl = document.getElementById(toastId);
+            if (toastEl) {
+                toastEl.remove();
+            }
+        }, 5000);
+    };
 
-        const data = await response.json();
-        setFavoriteState(favoriteBtn.dataset.hotelId, data.favorited);
+    if (favoriteBtn) {
+        try {
+            const response = await fetch(`/favorites/toggle/${favoriteBtn.dataset.hotelId}`, {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Server returned an error. Please try again.');
+            }
+
+            const data = await response.json();
+            setFavoriteState(favoriteBtn.dataset.hotelId, data.favorited);
+        } catch (error) {
+            showError(error.message || 'Unable to update wishlist.');
+        }
         return;
     }
 
     if (compareBtn) {
-        const response = await fetch(`/compare/toggle/${compareBtn.dataset.hotelId}`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'X-Requested-With': 'XMLHttpRequest' },
-        });
+        try {
+            const response = await fetch(`/compare/toggle/${compareBtn.dataset.hotelId}`, {
+                method: 'POST',
+                headers: { 
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+            });
 
-        const data = await response.json();
-        if (!data.success) {
-            alert(data.message || 'Unable to update comparison list.');
-            return;
+            if (!response.ok) {
+                throw new Error('Server returned an error. Please try again.');
+            }
+
+            const data = await response.json();
+            if (!data.success) {
+                showError(data.message || 'Unable to update comparison list.');
+                return;
+            }
+
+            setCompareState(compareBtn.dataset.hotelId, data.added);
+            syncComparisonBar();
+        } catch (error) {
+            showError(error.message || 'Unable to update comparison list.');
         }
-
-        setCompareState(compareBtn.dataset.hotelId, data.added);
-        syncComparisonBar();
     }
 });
 </script>

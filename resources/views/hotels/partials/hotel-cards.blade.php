@@ -5,7 +5,7 @@
         {{-- Image --}}
         <div class="col-md-4 position-relative">
             <img src="{{ $hotel->image_url }}" alt="{{ $hotel->name }}"
-                 class="img-fluid rounded-start h-100" style="object-fit:cover; min-height:200px">
+                 class="img-fluid rounded-start h-100" style="object-fit:cover; min-height:200px" loading="lazy">
 
             {{-- Star Rating badge --}}
             <span class="position-absolute top-0 start-0 m-2 badge bg-warning text-dark">
@@ -19,7 +19,7 @@
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <h5 class="card-title mb-1">
-                            <a href="{{ route('hotels.show', $hotel) }}" class="text-decoration-none text-dark">
+                            <a href="{{ route('hotels.show', array_merge(['hotel' => $hotel->id], request()->only(['check_in', 'check_out', 'guests']))) }}" class="text-decoration-none text-dark">
                                 {{ $hotel->name }}
                             </a>
                         </h5>
@@ -53,12 +53,18 @@
                     {{ $hotel->description }}
                 </p>
 
+                {{-- Free Cancellation Policy --}}
+                <div class="text-success small mb-2"><i class="bi bi-check-circle me-1"></i>Free cancellation before check-in</div>
+
                 {{-- Footer: Price + Actions --}}
                 <div class="mt-auto d-flex justify-content-between align-items-center">
                     <div>
-                        @if($hotel->min_price)
+                        @php
+                            $minPriceForDates = $hotel->getMinPriceForDates(request('check_in'), request('check_out'));
+                        @endphp
+                        @if($minPriceForDates)
                         <span class="text-muted small">From</span>
-                        <span class="price-tag">৳{{ number_format($hotel->min_price) }}</span>
+                        <span class="price-tag">BDT {{ number_format($minPriceForDates) }}</span>
                         <span class="text-muted small">/night</span>
                         @else
                         <span class="text-muted small">No rooms available</span>
@@ -85,7 +91,7 @@
                         </button>
                         @endauth
 
-                        <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-sm btn-primary">
+                        <a href="{{ route('hotels.show', array_merge(['hotel' => $hotel->id], request()->only(['check_in', 'check_out', 'guests']))) }}" class="btn btn-sm btn-primary">
                             View Details
                         </a>
                     </div>
@@ -103,4 +109,15 @@
     <a href="{{ route('hotels.index') }}" class="btn btn-primary">View All Hotels</a>
 </div>
 @endforelse
+
+<script id="hotelsData" type="application/json">
+{!! json_encode($hotels->map(fn($h) => [
+    'name' => $h->name,
+    'lat' => (float) ($h->latitude ?? 0),
+    'lng' => (float) ($h->longitude ?? 0),
+    'stars' => (float) $h->star_rating,
+    'price' => number_format($h->getMinPriceForDates(request('check_in'), request('check_out')) ?? 0),
+    'url' => route('hotels.show', array_merge(['hotel' => $h->id], request()->only(['check_in', 'check_out', 'guests'])))
+])) !!}
+</script>
 

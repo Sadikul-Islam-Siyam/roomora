@@ -24,7 +24,7 @@
             <div class="carousel-inner">
                 @foreach($galleryImages as $index => $image)
                     <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                        <img src="{{ asset('storage/' . $image) }}" class="d-block w-100" alt="{{ $alt }}" style="height: 420px; object-fit: cover;">
+                        <img src="{{ asset('storage/' . $image) }}" class="d-block w-100" alt="{{ $alt }}" style="height: 420px; object-fit: cover;" @if($index > 0) loading="lazy" @endif>
                     </div>
                 @endforeach
             </div>

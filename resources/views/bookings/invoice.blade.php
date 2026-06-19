@@ -8,7 +8,6 @@
         .page { padding: 40px; }
 
         /* Header */
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #1a56db; }
         .brand { font-size: 28px; font-weight: 800; color: #1a56db; }
         .brand span { color: #f59e0b; }
         .invoice-meta { text-align: right; }
@@ -16,23 +15,14 @@
 
         /* Status badge */
         .status-badge { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .status-pending    { background: #fef3c7; color: #d97706; }
         .status-confirmed  { background: #d1fae5; color: #065f46; }
+        .status-checked_in { background: #e0f2fe; color: #0284c7; }
         .status-cancelled  { background: #fee2e2; color: #991b1b; }
         .status-checked_out{ background: #e0e7ff; color: #3730a3; }
 
         /* Info grid */
-        .info-grid { display: flex; gap: 30px; margin: 25px 0; }
-        .info-box { flex: 1; background: #f8fafc; border-radius: 8px; padding: 16px; border-left: 3px solid #1a56db; }
-        .info-box h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 8px; }
-        .info-box p { margin: 3px 0; font-size: 13px; }
-
-        /* Stay details */
-        .stay-grid { display: flex; gap: 0; margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
-        .stay-item { flex: 1; padding: 16px; text-align: center; border-right: 1px solid #e5e7eb; }
-        .stay-item:last-child { border-right: none; }
-        .stay-item .label { font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 6px; }
-        .stay-item .value { font-size: 18px; font-weight: 700; color: #1a56db; }
-        .stay-item .sub { font-size: 11px; color: #9ca3af; }
+        .stay-item { text-align: center; }
 
         /* Room info */
         .room-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 20px 0; }
@@ -57,120 +47,129 @@
 <div class="page">
 
     {{-- Header --}}
-    <div class="header">
-        <div>
-            <div class="brand">Room<span>ora</span></div>
-            <div style="font-size:11px;color:#6b7280;margin-top:4px">Hotel Booking & Comparison Platform</div>
-        </div>
-        <div class="invoice-meta">
-            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px">Tax Invoice</div>
-            <div class="ref">{{ $booking->booking_reference }}</div>
-            <div style="font-size:12px;color:#6b7280;margin-top:4px">Issued: {{ now()->format('M j, Y') }}</div>
-            <div style="margin-top:8px">
-                <span class="status-badge status-{{ $booking->status }}">{{ ucfirst($booking->status) }}</span>
-            </div>
-        </div>
-    </div>
+    <table style="width: 100%; border-bottom: 3px solid #1a56db; margin-bottom: 30px; padding-bottom: 20px;">
+        <tr>
+            <td style="vertical-align: top; text-align: left;">
+                <div class="brand">Room<span>ora</span></div>
+                <div style="font-size:11px;color:#6b7280;margin-top:4px">Hotel Booking & Comparison Platform</div>
+            </td>
+            <td style="vertical-align: top; text-align: right;" class="invoice-meta">
+                <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px">Tax Invoice</div>
+                <div class="ref">{{ $booking->booking_reference }}</div>
+                <div style="font-size:12px;color:#6b7280;margin-top:4px">Issued: {{ now()->format('M j, Y') }}</div>
+                <div style="margin-top:8px">
+                    <span class="status-badge status-{{ $booking->status }}">{{ ucfirst($booking->status) }}</span>
+                </div>
+            </td>
+        </tr>
+    </table>
 
     {{-- Info Grid --}}
-    <div class="info-grid">
-        <div class="info-box">
-            <h4>Bill To</h4>
-            <p><strong>{{ $booking->guest_name ?? $booking->user->name }}</strong></p>
-            <p>{{ $booking->guest_email ?? $booking->user->email }}</p>
-            <p>{{ $booking->guest_phone ?? $booking->user->phone ?? '—' }}</p>
-        </div>
-
-        <div class="info-box">
-            <h4>Account</h4>
-            <p><strong>Account ID:</strong> {{ $booking->user->id }}</p>
-            <p><strong>Account Email:</strong> {{ $booking->user->email }}</p>
-            <p><strong>Registered:</strong> {{ $booking->user->created_at->format('M j, Y') }}</p>
-        </div>
-
-        <div class="info-box">
-            <h4>Hotel</h4>
-            <p><strong>{{ $booking->room->hotel->name }}</strong></p>
-            <p>{{ $booking->room->hotel->address }}</p>
-            <p>{{ $booking->room->hotel->city }}</p>
-        </div>
-
-        <div class="info-box">
-            <h4>Booking Date</h4>
-            <p><strong>{{ $booking->created_at->format('M j, Y') }}</strong></p>
-            <p>{{ $booking->created_at->format('h:i A') }}</p>
-        </div>
-    </div>
+    <table style="width: 100%; margin: 25px 0; border-spacing: 15px 0; border-collapse: separate; margin-left: -15px; margin-right: -15px;">
+        <tr>
+            <td style="width: 25%; vertical-align: top; background: #f8fafc; border-radius: 8px; padding: 16px; border-left: 3px solid #1a56db;">
+                <h4 style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 8px; margin-top: 0;">Bill To</h4>
+                <p style="margin: 3px 0; font-size: 13px;"><strong>{{ $booking->guest_name ?? $booking->user->name }}</strong></p>
+                <p style="margin: 3px 0; font-size: 13px;">{{ $booking->guest_email ?? $booking->user->email }}</p>
+                <p style="margin: 3px 0; font-size: 13px;">{{ $booking->guest_phone ?? $booking->user->phone ?? '—' }}</p>
+            </td>
+            <td style="width: 25%; vertical-align: top; background: #f8fafc; border-radius: 8px; padding: 16px; border-left: 3px solid #1a56db;">
+                <h4 style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 8px; margin-top: 0;">Account</h4>
+                <p style="margin: 3px 0; font-size: 13px;"><strong>Account ID:</strong> {{ $booking->user->id }}</p>
+                <p style="margin: 3px 0; font-size: 13px;"><strong>Account Email:</strong> {{ $booking->user->email }}</p>
+                <p style="margin: 3px 0; font-size: 13px;"><strong>Registered:</strong> {{ $booking->user->created_at->format('M j, Y') }}</p>
+            </td>
+            <td style="width: 25%; vertical-align: top; background: #f8fafc; border-radius: 8px; padding: 16px; border-left: 3px solid #1a56db;">
+                <h4 style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 8px; margin-top: 0;">Hotel</h4>
+                <p style="margin: 3px 0; font-size: 13px;"><strong>{{ $booking->room->hotel->name }}</strong></p>
+                <p style="margin: 3px 0; font-size: 13px;">{{ $booking->room->hotel->address }}</p>
+                <p style="margin: 3px 0; font-size: 13px;">{{ $booking->room->hotel->city }}</p>
+            </td>
+            <td style="width: 25%; vertical-align: top; background: #f8fafc; border-radius: 8px; padding: 16px; border-left: 3px solid #1a56db;">
+                <h4 style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 8px; margin-top: 0;">Booking Date</h4>
+                <p style="margin: 3px 0; font-size: 13px;"><strong>{{ $booking->created_at->format('M j, Y') }}</strong></p>
+                <p style="margin: 3px 0; font-size: 13px;">{{ $booking->created_at->format('h:i A') }}</p>
+            </td>
+        </tr>
+    </table>
 
     {{-- Billing & Payment summary --}}
-    <div style="display:flex;gap:20px;margin-top:10px;">
-        <div style="flex:1;background:#f8fafc;padding:12px;border-radius:8px;border-left:3px solid #1a56db;">
-            <h4 style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px">Billing Address</h4>
-            <p style="margin-top:6px">{{ $booking->user->address ?? '—' }}</p>
-        </div>
-        <div style="width:260px;background:#f8fafc;padding:12px;border-radius:8px;border-left:3px solid #1a56db;">
-            <h4 style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px">Payment</h4>
-            <p style="margin-top:6px"><strong>Method:</strong> {{ $booking->payment_method ?? 'N/A' }}</p>
-            <p style="margin-top:4px"><strong>Paid:</strong> {{ $booking->status === 'confirmed' ? 'Yes' : 'No' }}</p>
-        </div>
-    </div>
+    <table style="width: 100%; margin-top: 10px; margin-bottom: 15px; border-spacing: 15px 0; border-collapse: separate; margin-left: -15px; margin-right: -15px;">
+        <tr>
+            <td style="vertical-align: top; background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 3px solid #1a56db;">
+                <h4 style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-top:0;margin-bottom:6px">Billing Address</h4>
+                <p style="margin: 0;">{{ $booking->user->address ?? '—' }}</p>
+            </td>
+            <td style="width: 260px; vertical-align: top; background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 3px solid #1a56db;">
+                <h4 style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-top:0;margin-bottom:6px">Payment</h4>
+                <p style="margin: 0;"><strong>Method:</strong> {{ $booking->payment_method ?? 'N/A' }}</p>
+                <p style="margin: 4px 0 0 0;"><strong>Paid:</strong> {{ $booking->is_paid ? 'Yes' : 'No' }}</p>
+                @if($booking->is_paid && $booking->paid_at)
+                    <p style="margin: 4px 0 0 0; font-size:11px; color:#6b7280;"><strong>Paid At:</strong> {{ $booking->paid_at->format('M j, Y h:i A') }}</p>
+                @endif
+            </td>
+        </tr>
+    </table>
 
     {{-- Stay Details --}}
-    <div class="stay-grid">
-        <div class="stay-item">
-            <div class="label">Check-in</div>
-            <div class="value">{{ $booking->check_in->format('M j') }}</div>
-            <div class="sub">{{ $booking->check_in->format('Y, l') }}</div>
-            <div class="sub">After {{ $booking->room->hotel->check_in_time }}</div>
-        </div>
-        <div class="stay-item">
-            <div class="label">Check-out</div>
-            <div class="value">{{ $booking->check_out->format('M j') }}</div>
-            <div class="sub">{{ $booking->check_out->format('Y, l') }}</div>
-            <div class="sub">Before {{ $booking->room->hotel->check_out_time }}</div>
-        </div>
-        <div class="stay-item">
-            <div class="label">Duration</div>
-            <div class="value">{{ $booking->nights }}</div>
-            <div class="sub">Night{{ $booking->nights > 1 ? 's' : '' }}</div>
-        </div>
-        <div class="stay-item">
-            <div class="label">Guests</div>
-            <div class="value">{{ $booking->guests }}</div>
-            <div class="sub">Person{{ $booking->guests > 1 ? 's' : '' }}</div>
-        </div>
-    </div>
-        @if(($booking->guests ?? 1) > 1)
-        <div style="margin-top:16px">
-            <h4 style="font-size:13px;color:#374151;margin-bottom:8px">Guest Information</h4>
-            @if(!empty($booking->guest_details) && is_array($booking->guest_details))
-                <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
-                    <thead>
-                        <tr>
-                            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">#</th>
-                            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Name</th>
-                            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Email</th>
-                            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Phone</th>
-                            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">NID</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($booking->guest_details as $i => $g)
-                        <tr>
-                            <td style="padding:6px 8px">{{ $i + 1 }}</td>
-                            <td style="padding:6px 8px">{{ $g['name'] ?? '—' }}</td>
-                            <td style="padding:6px 8px">{{ $g['email'] ?? '—' }}</td>
-                            <td style="padding:6px 8px">{{ $g['phone'] ?? '—' }}</td>
-                            <td style="padding:6px 8px">{{ $g['nid'] ?? '—' }}</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
-            @else
-                <p style="color:#6b7280">Total guests: {{ $booking->guests }} (no individual details provided)</p>
-            @endif
-        </div>
+    <table style="width: 100%; margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; border-collapse: collapse; overflow: hidden;">
+        <tr>
+            <td style="width: 25%; padding: 16px; text-align: center; border-right: 1px solid #e5e7eb;">
+                <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;">Check-in</div>
+                <div style="font-size: 18px; font-weight: 700; color: #1a56db;">{{ $booking->check_in->format('M j') }}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">{{ $booking->check_in->format('Y, l') }}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">After {{ $booking->room->hotel->check_in_time }}</div>
+            </td>
+            <td style="width: 25%; padding: 16px; text-align: center; border-right: 1px solid #e5e7eb;">
+                <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;">Check-out</div>
+                <div style="font-size: 18px; font-weight: 700; color: #1a56db;">{{ $booking->check_out->format('M j') }}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">{{ $booking->check_out->format('Y, l') }}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">Before {{ $booking->room->hotel->check_out_time }}</div>
+            </td>
+            <td style="width: 25%; padding: 16px; text-align: center; border-right: 1px solid #e5e7eb;">
+                <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;">Duration</div>
+                <div style="font-size: 18px; font-weight: 700; color: #1a56db;">{{ $booking->nights }}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">Night{{ $booking->nights > 1 ? 's' : '' }}</div>
+            </td>
+            <td style="width: 25%; padding: 16px; text-align: center;">
+                <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;">Guests</div>
+                <div style="font-size: 18px; font-weight: 700; color: #1a56db;">{{ $booking->guests }}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">Person{{ $booking->guests > 1 ? 's' : '' }}</div>
+            </td>
+        </tr>
+    </table>
+
+    @if(($booking->guests ?? 1) > 1)
+    <div style="margin-top:16px">
+        <h4 style="font-size:13px;color:#374151;margin-bottom:8px">Guest Information</h4>
+        @if(!empty($booking->guest_details) && is_array($booking->guest_details))
+            <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">#</th>
+                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Name</th>
+                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Email</th>
+                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Phone</th>
+                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">NID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach($booking->guest_details as $i => $g)
+                    <tr>
+                        <td style="padding:6px 8px">{{ $i + 1 }}</td>
+                        <td style="padding:6px 8px">{{ $g['name'] ?? '—' }}</td>
+                        <td style="padding:6px 8px">{{ $g['email'] ?? '—' }}</td>
+                        <td style="padding:6px 8px">{{ $g['phone'] ?? '—' }}</td>
+                        <td style="padding:6px 8px">{{ $g['nid'] ?? '—' }}</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        @else
+            <p style="color:#6b7280">Total guests: {{ $booking->guests }} (no individual details provided)</p>
         @endif
+    </div>
+    @endif
 
     {{-- Room Info --}}
     <div class="room-box">
@@ -204,21 +203,21 @@
                         {{ $booking->check_in->format('M j, Y') }} → {{ $booking->check_out->format('M j, Y') }}
                     </span>
                 </td>
-                <td>৳{{ number_format($booking->room_price) }}/night</td>
+                <td>BDT {{ number_format($booking->room_price) }}/night</td>
                 <td>{{ $booking->nights }} night{{ $booking->nights > 1 ? 's' : '' }}</td>
-                <td>৳{{ number_format($booking->room_price * $booking->nights) }}</td>
+                <td>BDT {{ number_format($booking->room_price * $booking->nights) }}</td>
             </tr>
         </tbody>
         <tfoot>
             @if($booking->discount > 0)
             <tr>
                 <td colspan="3" style="color:#059669">Discount</td>
-                <td style="color:#059669;text-align:right">- ৳{{ number_format($booking->discount) }}</td>
+                <td style="color:#059669;text-align:right">- BDT {{ number_format($booking->discount) }}</td>
             </tr>
             @endif
             <tr>
                 <td colspan="3" class="total-label">Total Amount</td>
-                <td>৳{{ number_format($booking->total_price) }}</td>
+                <td>BDT {{ number_format($booking->total_price) }}</td>
             </tr>
         </tfoot>
     </table>

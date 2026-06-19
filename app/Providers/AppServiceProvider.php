@@ -30,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Booking::class, BookingPolicy::class);
         Gate::policy(Review::class, ReviewPolicy::class);
 
+        \Illuminate\Support\Facades\View::composer('layouts.admin', \App\View\Composers\AdminSidebarComposer::class);
+
         RateLimiter::for('booking', function (Request $request) {
             return Limit::perMinute(10)->by($request->user()?->id ?? $request->ip());
         });
@@ -41,5 +43,7 @@ class AppServiceProvider extends ServiceProvider
         if (app()->environment('local') && config('database.connections.mysql.database') === 'laravel') {
             throw new \RuntimeException('Set DB_DATABASE in your .env before running Roomora. The default "laravel" database name is not allowed.');
         }
+
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
     }
 }

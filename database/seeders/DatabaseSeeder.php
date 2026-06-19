@@ -61,10 +61,21 @@ class DatabaseSeeder extends Seeder
 
         $amenityPool = ['WiFi', 'Pool', 'Gym', 'Restaurant', 'Spa', 'Parking', 'Airport Shuttle', 'Bar', 'Laundry', 'Conference Room'];
 
-        $hotels = collect(range(1, 20))->map(function (int $index) use ($hotelNames, $cities, $amenityPool, $admin) {
+        $cityCoords = [
+            'Dhaka'       => ['lat' => 23.8103, 'lng' => 90.4125],
+            'Chittagong'  => ['lat' => 22.3569, 'lng' => 91.7832],
+            "Cox's Bazar" => ['lat' => 21.4272, 'lng' => 92.0058],
+            'Sylhet'      => ['lat' => 24.8949, 'lng' => 91.8687],
+            'Khulna'      => ['lat' => 22.8456, 'lng' => 89.5403],
+        ];
+
+        $hotels = collect(range(1, 20))->map(function (int $index) use ($hotelNames, $cities, $amenityPool, $admin, $cityCoords) {
             $city = $cities[($index - 1) % count($cities)];
             $name = $hotelNames[$index - 1] . ' ' . $city;
             $amenities = collect($amenityPool)->shuffle()->take(random_int(4, 7))->values()->all();
+            $coords = $cityCoords[$city];
+            $latOffset = (random_int(-100, 100) / 10000);
+            $lngOffset = (random_int(-100, 100) / 10000);
 
             return Hotel::create([
                 'name'          => $name,
@@ -79,6 +90,8 @@ class DatabaseSeeder extends Seeder
                 'email'         => 'info' . $index . '@roomora.test',
                 'website'       => 'https://example.com',
                 'is_active'     => true,
+                'latitude'      => $coords['lat'] + $latOffset,
+                'longitude'     => $coords['lng'] + $lngOffset,
                 'created_by'    => $admin->id,
             ]);
         });
