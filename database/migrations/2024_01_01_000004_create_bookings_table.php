@@ -12,7 +12,11 @@ return new class extends Migration
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('room_id')->constrained('rooms')->restrictOnDelete();
+            if (DB::getDriverName() === 'oracle') {
+                $table->foreignId('room_id')->constrained('rooms');
+            } else {
+                $table->foreignId('room_id')->constrained('rooms')->restrictOnDelete();
+            }
             $table->string('booking_reference')->unique(); // e.g. RMR-2024-0001
             $table->date('check_in');
             $table->date('check_out');

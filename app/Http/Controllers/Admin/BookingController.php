@@ -86,18 +86,25 @@ class BookingController extends Controller
     {
         $year = $request->get('year', now()->year);
 
+        $driver = DB::connection()->getDriverName();
+        $monthExpr = match ($driver) {
+            'sqlite' => 'CAST(strftime(\'%m\', created_at) AS INTEGER)',
+            'mysql' => 'MONTH(created_at)',
+            default => 'EXTRACT(MONTH FROM created_at)',
+        };
+
         $monthlyStats = Booking::select(
-                DB::raw('MONTH(created_at) as month'),
+                DB::raw("$monthExpr as month"),
                 DB::raw('COUNT(*) as total_bookings'),
-                DB::raw('SUM(CASE WHEN status != "cancelled" THEN total_price ELSE 0 END) as revenue'),
-                DB::raw('SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as cancellations')
+                DB::raw("SUM(CASE WHEN status != 'cancelled' THEN total_price ELSE 0 END) as revenue"),
+                DB::raw("SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancellations")
             )
             ->whereYear('created_at', $year)
-            ->groupBy('month')
+            ->groupByRaw($monthExpr)
             ->orderBy('month')
             ->get()
             ->map(fn($row) => [
-                'label'          => date('M', mktime(0, 0, 0, $row->month, 1, $year)),
+                'label'          => date('M', mktime(0, 0, 0, (int) $row->month, 1, (int) $year)),
                 'month'          => $row->month,
                 'total_bookings' => (int) $row->total_bookings,
                 'revenue'        => (float) $row->revenue,

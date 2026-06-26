@@ -33,20 +33,32 @@ class DashboardController extends Controller
         ];
 
         // ── Monthly Revenue (last 12 months) ─────────────────
+        $driver = DB::connection()->getDriverName();
+        $yearExpr = match ($driver) {
+            'sqlite' => 'CAST(strftime(\'%Y\', created_at) AS INTEGER)',
+            'mysql' => 'YEAR(created_at)',
+            default => 'EXTRACT(YEAR FROM created_at)',
+        };
+        $monthExpr = match ($driver) {
+            'sqlite' => 'CAST(strftime(\'%m\', created_at) AS INTEGER)',
+            'mysql' => 'MONTH(created_at)',
+            default => 'EXTRACT(MONTH FROM created_at)',
+        };
+
         $monthlyRevenue = Booking::select(
-                DB::raw('YEAR(created_at) as year'),
-                DB::raw('MONTH(created_at) as month'),
+                DB::raw("$yearExpr as year"),
+                DB::raw("$monthExpr as month"),
                 DB::raw('SUM(total_price) as revenue'),
                 DB::raw('COUNT(*) as count')
             )
             ->whereNotIn('status', ['cancelled'])
             ->where('created_at', '>=', now()->subMonths(12))
-            ->groupBy('year', 'month')
+            ->groupByRaw("$yearExpr, $monthExpr")
             ->orderBy('year')
             ->orderBy('month')
             ->get()
             ->map(fn($row) => [
-                'label'   => date('M Y', mktime(0, 0, 0, $row->month, 1, $row->year)),
+                'label'   => date('M Y', mktime(0, 0, 0, (int) $row->month, 1, (int) $row->year)),
                 'revenue' => (float) $row->revenue,
                 'count'   => $row->count,
             ]);

@@ -57,14 +57,14 @@ class Room extends Model
         return $query->where('is_available', true)
             ->where('quantity', '>', 0)
             ->where(function ($q) use ($checkIn, $checkOut) {
-                $q->whereRaw('quantity > (
+                $q->whereRaw("quantity > (
                     select count(*) from bookings
                     where bookings.room_id = rooms.id
                     and bookings.deleted_at is null
-                    and status in ("pending", "confirmed", "checked_in")
+                    and status in ('pending', 'confirmed', 'checked_in')
                     and check_in < ?
                     and check_out > ?
-                )', [$checkOut, $checkIn]);
+                )", [$checkOut, $checkIn]);
             });
     }
 

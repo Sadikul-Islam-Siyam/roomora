@@ -66,8 +66,13 @@ class HotelController extends Controller
 
         // Amenities filter
         if ($amenities = $request->get('amenities')) {
+            $driver = DB::connection()->getDriverName();
             foreach ((array) $amenities as $amenity) {
-                $query->whereJsonContains('amenities', $amenity);
+                if (in_array($driver, ['oracle', 'sqlite'])) {
+                    $query->where('amenities', 'LIKE', '%"' . $amenity . '"%');
+                } else {
+                    $query->whereJsonContains('amenities', $amenity);
+                }
             }
         }
 
@@ -75,8 +80,8 @@ class HotelController extends Controller
         $sort = $request->get('sort', 'rating');
         if ($checkIn && $checkOut) {
             match ($sort) {
-                'price_low'  => $query->orderByRaw('(SELECT MIN(price) FROM rooms WHERE hotel_id = hotels.id AND is_available = 1 AND quantity > (SELECT COUNT(*) FROM bookings WHERE bookings.room_id = rooms.id AND bookings.deleted_at IS NULL AND status IN ("pending", "confirmed", "checked_in") AND check_in < ? AND check_out > ?)) ASC', [$checkOut, $checkIn]),
-                'price_high' => $query->orderByRaw('(SELECT MIN(price) FROM rooms WHERE hotel_id = hotels.id AND is_available = 1 AND quantity > (SELECT COUNT(*) FROM bookings WHERE bookings.room_id = rooms.id AND bookings.deleted_at IS NULL AND status IN ("pending", "confirmed", "checked_in") AND check_in < ? AND check_out > ?)) DESC', [$checkOut, $checkIn]),
+                'price_low'  => $query->orderByRaw("(SELECT MIN(price) FROM rooms WHERE hotel_id = hotels.id AND is_available = 1 AND quantity > (SELECT COUNT(*) FROM bookings WHERE bookings.room_id = rooms.id AND bookings.deleted_at IS NULL AND status IN ('pending', 'confirmed', 'checked_in') AND check_in < ? AND check_out > ?)) ASC", [$checkOut, $checkIn]),
+                'price_high' => $query->orderByRaw("(SELECT MIN(price) FROM rooms WHERE hotel_id = hotels.id AND is_available = 1 AND quantity > (SELECT COUNT(*) FROM bookings WHERE bookings.room_id = rooms.id AND bookings.deleted_at IS NULL AND status IN ('pending', 'confirmed', 'checked_in') AND check_in < ? AND check_out > ?)) DESC", [$checkOut, $checkIn]),
                 'name'       => $query->orderBy('name'),
                 'newest'     => $query->latest(),
                 default      => $query->orderByDesc('reviews_avg_rating'),

@@ -36,7 +36,7 @@ return new class extends Migration
             $table->index('star_rating');
             $table->index('is_active');
             $table->index(['city', 'is_active']);
-            if (DB::getDriverName() !== 'sqlite') {
+            if (in_array(DB::getDriverName(), ['mysql', 'pgsql'])) {
                 $table->fullText(['name', 'city', 'description']);
             }
         });
