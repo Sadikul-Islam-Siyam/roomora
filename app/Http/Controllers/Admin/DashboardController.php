@@ -118,4 +118,53 @@ class DashboardController extends Controller
             'pending_bookings'=> Booking::where('status', 'pending')->count(),
         ]);
     }
+
+    /**
+     * View search query analytics and zero-result search log statistics.
+     */
+    public function searchAnalytics(Request $request)
+    {
+        $totalQueries = DB::table('search_logs')->count();
+
+        $queriesLast30Days = DB::table('search_logs')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->count();
+
+        $avgResults = round(DB::table('search_logs')->avg('result_count') ?? 0, 1);
+
+        $topTerms = DB::table('search_logs')
+            ->select('term', DB::raw('COUNT(*) as count'), DB::raw('AVG(result_count) as avg_results'))
+            ->groupBy('term')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get();
+
+        $topCities = DB::table('search_logs')
+            ->select('city', DB::raw('COUNT(*) as count'), DB::raw('AVG(result_count) as avg_results'))
+            ->whereNotNull('city')
+            ->where('city', '!=', '')
+            ->groupBy('city')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get();
+
+        $zeroResults = DB::table('search_logs')
+            ->select('term', 'city', DB::raw('COUNT(*) as count'))
+            ->where('result_count', 0)
+            ->groupBy('term', 'city')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get();
+
+        $logs = DB::table('search_logs')
+            ->leftJoin('users', 'search_logs.user_id', '=', 'users.id')
+            ->select('search_logs.*', 'users.name as user_name', 'users.email as user_email')
+            ->orderByDesc('search_logs.created_at')
+            ->paginate(20);
+
+        return view('admin.search-analytics', compact(
+            'totalQueries', 'queriesLast30Days', 'avgResults',
+            'topTerms', 'topCities', 'zeroResults', 'logs'
+        ));
+    }
 }

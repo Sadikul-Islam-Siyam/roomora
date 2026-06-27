@@ -117,6 +117,16 @@
                                 </div>
                             </div>
 
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">National ID (NID)</label>
+                                <input type="text" name="guest_nid"
+                                       class="form-control @error('guest_nid') is-invalid @enderror"
+                                       value="{{ old('guest_nid') }}" required
+                                       placeholder="Enter your National ID (NID) number"
+                                       maxlength="50">
+                                @error('guest_nid')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
                             <div class="mb-4">
                                 <label class="form-label small fw-semibold">
                                     Special Requests <span class="text-muted fw-normal">(optional)</span>

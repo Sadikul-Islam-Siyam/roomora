@@ -13,13 +13,15 @@ class Booking extends Model
 
     protected $fillable = [
         'user_id', 'room_id', 'booking_reference', 'check_in', 'check_out',
-        'guests', 'nights', 'room_price', 'total_price', 'discount', 'status',
-        'special_requests', 'guest_name', 'guest_email', 'guest_phone',
+        'guests', 'guest_details', 'nights', 'room_price', 'total_price', 'discount', 'status',
+        'special_requests', 'guest_name', 'guest_email', 'guest_phone', 'guest_nid',
         'cancelled_at', 'cancellation_reason', 'invoice_downloaded',
         'payment_method', 'is_paid', 'paid_at', 'billing_address',
     ];
 
     protected $casts = [
+        'user_id'            => 'integer',
+        'room_id'            => 'integer',
         'check_in'           => 'date',
         'check_out'          => 'date',
         'nights'             => 'integer',
@@ -49,9 +51,7 @@ class Booking extends Model
 
     const TRANSITION_MAP = [
         self::STATUS_PENDING    => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
-        self::STATUS_CONFIRMED  => [self::STATUS_CHECKED_IN, self::STATUS_CANCELLED],
-        self::STATUS_CHECKED_IN => [self::STATUS_CHECKED_OUT],
-        self::STATUS_CHECKED_OUT=> [],
+        self::STATUS_CONFIRMED  => [self::STATUS_CANCELLED],
         self::STATUS_CANCELLED  => [],
     ];
 

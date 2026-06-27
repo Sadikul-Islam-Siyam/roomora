@@ -103,32 +103,102 @@
 
             {{-- Guest Details --}}
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white fw-semibold">
-                    <i class="bi bi-person me-2 text-primary"></i>Guest Information
+                <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-person me-2 text-primary"></i>Guest Information</span>
+                    @if($booking->guests > 1)
+                    <button class="btn btn-sm btn-outline-primary" id="toggleEditGuestsBtn" onclick="toggleEditGuests()">
+                        <i class="bi bi-pencil-square me-1"></i>Edit Guest List
+                    </button>
+                    @endif
                 </div>
                 <div class="card-body">
-                    <div class="detail-row">
-                        <span class="text-muted">Name</span><span class="fw-semibold">{{ $booking->guest_name }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="text-muted">Email</span><span>{{ $booking->guest_email }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="text-muted">Phone</span><span>{{ $booking->guest_phone }}</span>
-                    </div>
-                    @if($booking->special_requests)
-                    <div class="detail-row">
-                        <span class="text-muted">Special Requests</span>
-                        <span class="text-end" style="max-width:60%">{{ $booking->special_requests }}</span>
+                    {{-- Validation Errors Display --}}
+                    @if ($errors->any())
+                    <div class="alert alert-danger mb-3">
+                        <ul class="mb-0 small">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
                     @endif
+
+                    {{-- Static View --}}
+                    <div id="staticGuestsView">
+                        <div class="detail-row">
+                            <span class="text-muted">Primary Guest Name</span><span class="fw-semibold">{{ $booking->guest_name }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="text-muted">Email</span><span>{{ $booking->guest_email }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="text-muted">Phone</span><span>{{ $booking->guest_phone }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="text-muted">National ID (NID)</span><span>{{ $booking->guest_nid ?? '—' }}</span>
+                        </div>
+                        @if($booking->special_requests)
+                        <div class="detail-row">
+                            <span class="text-muted">Special Requests</span>
+                            <span class="text-end" style="max-width:60%">{{ $booking->special_requests }}</span>
+                        </div>
+                        @endif
+
+                        @if($booking->guests > 1)
+                        <div class="mt-4">
+                            <h6 class="fw-semibold mb-3 text-muted"><i class="bi bi-people me-2"></i>Additional Guest Details</h6>
+                            @php $details = $booking->guest_details ?? []; @endphp
+                            @for($i = 0; $i < $booking->guests - 1; $i++)
+                            <div class="p-3 border rounded mb-2 bg-light bg-opacity-50">
+                                <div class="row g-2">
+                                    <div class="col-md-3"><strong>Guest {{ $i + 2 }}:</strong> {{ $details[$i]['name'] ?? 'Not set' }}</div>
+                                    <div class="col-md-3"><span class="text-muted small">Email:</span> {{ $details[$i]['email'] ?? '—' }}</div>
+                                    <div class="col-md-3"><span class="text-muted small">Phone:</span> {{ $details[$i]['phone'] ?? '—' }}</div>
+                                    <div class="col-md-3"><span class="text-muted small">NID:</span> {{ $details[$i]['nid'] ?? '—' }}</div>
+                                </div>
+                            </div>
+                            @endfor
+                        </div>
+                        @endif
+                    </div>
+
+                    {{-- Inline Form View (hidden by default) --}}
                     @if($booking->guests > 1)
-                    <div class="detail-row">
-                        <span class="text-muted">Guests</span>
-                        <span>
-                            {{ $booking->guests }} guests
-                            <a href="#" class="ms-2 small" data-bs-toggle="modal" data-bs-target="#guestsModal">Edit guests</a>
-                        </span>
+                    <div id="editGuestsFormView" class="d-none">
+                        <form method="POST" action="{{ route('bookings.guests.update', $booking) }}">
+                            @csrf
+                            <input type="hidden" name="guests" value="{{ $booking->guests }}">
+
+                            <p class="small text-muted mb-3"><i class="bi bi-info-circle me-1"></i>Please specify the details for each additional guest. All fields are required. NIDs are mandatory for multiple guests.</p>
+                            @php $details = $booking->guest_details ?? []; @endphp
+                            @for($i = 0; $i < $booking->guests - 1; $i++)
+                            <div class="p-3 border rounded mb-3 bg-light">
+                                <div class="fw-bold mb-2 text-primary">Guest {{ $i + 2 }} Details</div>
+                                <div class="row g-2">
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label small mb-1">Full Name</label>
+                                        <input name="guest_details[{{ $i }}][name]" value="{{ $details[$i]['name'] ?? '' }}" class="form-control form-control-sm" placeholder="Full name" required>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label small mb-1">Email Address</label>
+                                        <input type="email" name="guest_details[{{ $i }}][email]" value="{{ $details[$i]['email'] ?? '' }}" class="form-control form-control-sm" placeholder="Email" required>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label small mb-1">Phone Number</label>
+                                        <input name="guest_details[{{ $i }}][phone]" value="{{ $details[$i]['phone'] ?? '' }}" class="form-control form-control-sm" placeholder="Phone" required>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label small mb-1">National ID (NID)</label>
+                                        <input name="guest_details[{{ $i }}][nid]" value="{{ $details[$i]['nid'] ?? '' }}" class="form-control form-control-sm" placeholder="NID number" required>
+                                    </div>
+                                </div>
+                            </div>
+                            @endfor
+                            <div class="d-flex justify-content-end gap-2 mt-3">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleEditGuests()">Cancel</button>
+                                <button type="submit" class="btn btn-sm btn-primary">Save Guest Details</button>
+                            </div>
+                        </form>
                     </div>
                     @endif
                 </div>
@@ -229,46 +299,25 @@
 </div>
 @endif
 
-@if($booking->guests > 1)
-<!-- Guests Modal -->
-<div class="modal fade" id="guestsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Guest Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{{ route('bookings.guests.update', $booking) }}">
-                @csrf
-                <div class="modal-body">
-                    <p class="small text-muted">Provide individual guest names/emails/phones for the booking.</p>
-                    @php $count = $booking->guests; $details = $booking->guest_details ?? []; @endphp
-                    @for($i=0;$i<$count;$i++)
-                    <div class="row g-2 align-items-center mb-2">
-                        <div class="col-1 text-muted">{{ $i+1 }}</div>
-                        <div class="col-4">
-                            <input name="guest_details[{{ $i }}][name]" value="{{ $details[$i]['name'] ?? ( $i==0 ? $booking->guest_name : '' ) }}" class="form-control form-control-sm" placeholder="Full name">
-                        </div>
-                        <div class="col-3">
-                            <input name="guest_details[{{ $i }}][email]" value="{{ $details[$i]['email'] ?? '' }}" class="form-control form-control-sm" placeholder="Email">
-                        </div>
-                        <div class="col-3">
-                            <input name="guest_details[{{ $i }}][phone]" value="{{ $details[$i]['phone'] ?? ($i==0 ? $booking->guest_phone : '') }}" class="form-control form-control-sm" placeholder="Phone">
-                        </div>
-                        <div class="col-2">
-                            <input name="guest_details[{{ $i }}][nid]" value="{{ $details[$i]['nid'] ?? '' }}" class="form-control form-control-sm" placeholder="NID">
-                        </div>
-                    </div>
-                    @endfor
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save Guests</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-@endif
+@push('scripts')
+<script>
+function toggleEditGuests() {
+    const staticView = document.getElementById('staticGuestsView');
+    const formView = document.getElementById('editGuestsFormView');
+    const btn = document.getElementById('toggleEditGuestsBtn');
+    if (staticView && formView) {
+        staticView.classList.toggle('d-none');
+        formView.classList.toggle('d-none');
+        if (formView.classList.contains('d-none')) {
+            btn.innerHTML = '<i class="bi bi-pencil-square me-1"></i>Edit Guest List';
+            btn.className = 'btn btn-sm btn-outline-primary';
+        } else {
+            btn.innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancel Editing';
+            btn.className = 'btn btn-sm btn-outline-secondary';
+        }
+    }
+}
+</script>
+@endpush
 
 @endsection

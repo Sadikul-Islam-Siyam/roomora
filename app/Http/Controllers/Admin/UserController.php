@@ -18,9 +18,10 @@ class UserController extends Controller
         $query = User::withCount(['bookings', 'reviews']);
 
         if ($search = $request->get('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+            $searchLower = mb_strtolower($search);
+            $query->where(function ($q) use ($searchLower) {
+                $q->where(\Illuminate\Support\Facades\DB::raw('LOWER(name)'), 'like', "%{$searchLower}%")
+                  ->orWhere(\Illuminate\Support\Facades\DB::raw('LOWER(email)'), 'like', "%{$searchLower}%");
             });
         }
 

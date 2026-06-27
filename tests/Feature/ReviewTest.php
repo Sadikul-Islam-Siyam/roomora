@@ -80,7 +80,7 @@ class ReviewTest extends TestCase
         $this->assertDatabaseEmpty('reviews');
     }
 
-    public function test_user_who_stayed_but_not_checked_out_cannot_submit_review(): void
+    public function test_user_with_pending_booking_cannot_submit_review(): void
     {
         Booking::create([
             'user_id' => $this->user->id,
@@ -91,7 +91,7 @@ class ReviewTest extends TestCase
             'guests' => 2,
             'room_price' => $this->room->price,
             'total_price' => $this->room->price * 4,
-            'status' => 'confirmed', // not checked_out
+            'status' => 'pending', // pending
             'guest_name' => $this->user->name,
             'guest_email' => $this->user->email,
             'guest_phone' => $this->user->phone ?? '+8801700000000',
@@ -109,7 +109,7 @@ class ReviewTest extends TestCase
         $this->assertDatabaseEmpty('reviews');
     }
 
-    public function test_user_who_checked_out_can_submit_review(): void
+    public function test_user_who_has_confirmed_booking_can_submit_review(): void
     {
         Booking::create([
             'user_id' => $this->user->id,
@@ -120,7 +120,7 @@ class ReviewTest extends TestCase
             'guests' => 2,
             'room_price' => $this->room->price,
             'total_price' => $this->room->price * 3,
-            'status' => 'checked_out', // checked_out!
+            'status' => 'confirmed', // confirmed!
             'guest_name' => $this->user->name,
             'guest_email' => $this->user->email,
             'guest_phone' => $this->user->phone ?? '+8801700000000',
@@ -157,7 +157,7 @@ class ReviewTest extends TestCase
             'guests' => 2,
             'room_price' => $this->room->price,
             'total_price' => $this->room->price * 3,
-            'status' => 'checked_out',
+            'status' => 'confirmed',
             'guest_name' => $this->user->name,
             'guest_email' => $this->user->email,
             'guest_phone' => $this->user->phone ?? '+8801700000000',

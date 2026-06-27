@@ -94,6 +94,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Dashboard
     Route::get('/',           [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/stats',      [DashboardController::class, 'refreshStats'])->name('stats');
+    Route::get('/search-analytics', [DashboardController::class, 'searchAnalytics'])->name('search-analytics');
 
     // Hotels CRUD
     Route::resource('hotels', AdminHotelController::class);

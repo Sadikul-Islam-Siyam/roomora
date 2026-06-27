@@ -24,10 +24,7 @@ class DatabaseSeeder extends Seeder
         // ── Admin User ───────────────────────────────────────
         $adminPassword = env('ADMIN_SEED_PASSWORD');
         if (empty($adminPassword)) {
-            $adminPassword = \Illuminate\Support\Str::random(16);
-            if ($this->command) {
-                $this->command->warn("ADMIN_SEED_PASSWORD is not set. Generated random admin password: {$adminPassword}");
-            }
+            $adminPassword = 'password';
         }
 
         $admin = User::create([
@@ -120,7 +117,7 @@ class DatabaseSeeder extends Seeder
 
         // ── Sample Bookings ───────────────────────────────────
         $rooms = Room::all();
-        $statuses = ['confirmed', 'checked_out', 'checked_out', 'checked_out', 'pending', 'cancelled'];
+        $statuses = ['confirmed', 'confirmed', 'confirmed', 'confirmed', 'pending', 'cancelled'];
 
         collect(range(1, 200))->each(function () use ($createdUsers, $rooms, $statuses) {
             $user = $createdUsers->random();
@@ -152,7 +149,7 @@ class DatabaseSeeder extends Seeder
         // ── Reviews ───────────────────────────────────────────
         foreach ($createdUsers as $user) {
             $completedHotels = $user->bookings()
-                ->where('status', 'checked_out')
+                ->where('status', 'confirmed')
                 ->with('room.hotel')
                 ->get()
                 ->pluck('room.hotel')

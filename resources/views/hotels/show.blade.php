@@ -9,7 +9,7 @@
 .hotel-hero img { width: 100%; height: 100%; object-fit: cover; }
 .hotel-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,.2) 0%, rgba(0,0,0,.7) 100%); }
 .hotel-hero-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 30px; color: #fff; }
-.sticky-booking { position: sticky; top: 80px; }
+.sticky-booking { position: sticky; top: 90px; z-index: 10; background: #fff; }
 .room-card { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; transition: box-shadow .2s; }
 .room-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.1); }
 .review-stars { color: #f59e0b; font-size: 1.1rem; }
@@ -386,6 +386,38 @@
                 </div>
 
             </div>{{-- /tab-content --}}
+
+            {{-- Related Hotels --}}
+            @if($relatedHotels->count())
+            <div class="mt-5">
+                <h5 class="fw-bold mb-3"><i class="bi bi-building me-2 text-primary"></i>Other Hotels in {{ $hotel->city }}</h5>
+                <div class="row g-3">
+                    @foreach($relatedHotels as $related)
+                    <div class="col-md-4">
+                        <a href="{{ route('hotels.show', array_merge(['hotel' => $related->id], request()->only(['check_in', 'check_out', 'guests']))) }}" class="text-decoration-none text-dark">
+                            <div class="card border-0 shadow-sm h-100 hotel-card">
+                                <img src="{{ $related->image_url }}" alt="" class="card-img-top" style="height: 140px; object-fit: cover;" loading="lazy">
+                                <div class="card-body p-3">
+                                    <h6 class="fw-bold mb-1 text-truncate" style="font-size: 15px;">{{ $related->name }}</h6>
+                                    <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ $related->city }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="text-warning small">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <span style="color:{{ $i <= $related->star_rating ? '#f59e0b' : '#dee2e6' }}">★</span>
+                                            @endfor
+                                        </div>
+                                        @if($related->min_price)
+                                        <div class="small text-primary fw-bold">from BDT {{ number_format($related->min_price) }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
 
         {{-- Right Column: Booking Widget --}}
@@ -431,35 +463,6 @@
                 </div>
             </div>
 
-            {{-- Related Hotels --}}
-            @if($relatedHotels->count())
-            <div class="mt-4">
-                <h6 class="fw-semibold mb-3">Other Hotels in {{ $hotel->city }}</h6>
-                @foreach($relatedHotels as $related)
-                <a href="{{ route('hotels.show', $related) }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm mb-2 hotel-card">
-                        <div class="row g-0">
-                            <div class="col-4">
-                                <img src="{{ $related->image_url }}" alt=""
-                                     class="img-fluid rounded-start h-100" style="object-fit:cover;height:70px!important">
-                            </div>
-                            <div class="col-8">
-                                <div class="card-body p-2">
-                                    <div class="small fw-semibold text-dark">{{ $related->name }}</div>
-                                    <div class="text-warning" style="font-size:.7rem">
-                                        {{ str_repeat('★', floor($related->star_rating)) }}
-                                    </div>
-                                    @if($related->min_price)
-                                    <div class="small text-primary fw-bold">BDT {{ number_format($related->min_price) }}</div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-                @endforeach
-            </div>
-            @endif
         </div>
 
     </div>

@@ -35,7 +35,8 @@ class Hotel extends Model
 
     public function scopeInCity($query, string $city)
     {
-        return $query->where('city', 'like', "%{$city}%");
+        $city = mb_strtolower($city);
+        return $query->where(\Illuminate\Support\Facades\DB::raw('LOWER(city)'), 'like', "%{$city}%");
     }
 
     public function scopeWithMinRating($query, float $rating)
@@ -45,13 +46,13 @@ class Hotel extends Model
 
     public function scopeSearch($query, string $term)
     {
-        $term = trim($term);
+        $term = mb_strtolower(trim($term));
 
         return $query->where(function ($q) use ($term) {
-            $q->where('name', 'like', "%{$term}%")
-              ->orWhere('city', 'like', "%{$term}%")
-              ->orWhere('address', 'like', "%{$term}%")
-              ->orWhere('description', 'like', "%{$term}%");
+            $q->where(\Illuminate\Support\Facades\DB::raw('LOWER(name)'), 'like', "%{$term}%")
+              ->orWhere(\Illuminate\Support\Facades\DB::raw('LOWER(city)'), 'like', "%{$term}%")
+              ->orWhere(\Illuminate\Support\Facades\DB::raw('LOWER(address)'), 'like', "%{$term}%")
+              ->orWhere(\Illuminate\Support\Facades\DB::raw('LOWER(description)'), 'like', "%{$term}%");
         });
     }
 

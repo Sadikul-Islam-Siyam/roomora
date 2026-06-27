@@ -105,9 +105,9 @@ class AuditFixesTest extends TestCase
         $this->assertTrue(Booking::isValidTransition('pending', 'confirmed'));
         $this->assertTrue(Booking::isValidTransition('pending', 'cancelled'));
         $this->assertFalse(Booking::isValidTransition('pending', 'checked_in'));
-        $this->assertTrue(Booking::isValidTransition('confirmed', 'checked_in'));
+        $this->assertFalse(Booking::isValidTransition('confirmed', 'checked_in'));
         $this->assertFalse(Booking::isValidTransition('confirmed', 'checked_out'));
-        $this->assertTrue(Booking::isValidTransition('checked_in', 'checked_out'));
+        $this->assertFalse(Booking::isValidTransition('checked_in', 'checked_out'));
         $this->assertFalse(Booking::isValidTransition('checked_out', 'confirmed'));
         $this->assertFalse(Booking::isValidTransition('cancelled', 'confirmed'));
     }

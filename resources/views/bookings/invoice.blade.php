@@ -142,32 +142,35 @@
     @if(($booking->guests ?? 1) > 1)
     <div style="margin-top:16px">
         <h4 style="font-size:13px;color:#374151;margin-bottom:8px">Guest Information</h4>
-        @if(!empty($booking->guest_details) && is_array($booking->guest_details))
-            <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
-                <thead>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
+            <thead>
+                <tr>
+                    <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">#</th>
+                    <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Name</th>
+                    <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Email</th>
+                    <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Phone</th>
+                    <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">NID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding:6px 8px">1</td>
+                    <td style="padding:6px 8px">{{ $booking->guest_name }} (Primary)</td>
+                    <td style="padding:6px 8px">{{ $booking->guest_email }}</td>
+                    <td style="padding:6px 8px">{{ $booking->guest_phone }}</td>
+                    <td style="padding:6px 8px">{{ $booking->guest_nid ?? '—' }}</td>
+                </tr>
+                @foreach($booking->guest_details ?? [] as $i => $g)
                     <tr>
-                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">#</th>
-                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Name</th>
-                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Email</th>
-                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">Phone</th>
-                        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e5e7eb">NID</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach($booking->guest_details as $i => $g)
-                    <tr>
-                        <td style="padding:6px 8px">{{ $i + 1 }}</td>
+                        <td style="padding:6px 8px">{{ $i + 2 }}</td>
                         <td style="padding:6px 8px">{{ $g['name'] ?? '—' }}</td>
                         <td style="padding:6px 8px">{{ $g['email'] ?? '—' }}</td>
                         <td style="padding:6px 8px">{{ $g['phone'] ?? '—' }}</td>
                         <td style="padding:6px 8px">{{ $g['nid'] ?? '—' }}</td>
                     </tr>
                 @endforeach
-                </tbody>
-            </table>
-        @else
-            <p style="color:#6b7280">Total guests: {{ $booking->guests }} (no individual details provided)</p>
-        @endif
+            </tbody>
+        </table>
     </div>
     @endif
 

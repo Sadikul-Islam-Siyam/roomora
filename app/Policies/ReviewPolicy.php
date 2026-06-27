@@ -9,11 +9,11 @@ class ReviewPolicy
 {
     public function update(User $user, Review $review): bool
     {
-        return $user->id === $review->user_id;
+        return (int) $user->id === (int) $review->user_id;
     }
 
     public function delete(User $user, Review $review): bool
     {
-        return $user->id === $review->user_id || $user->isAdmin();
+        return (int) $user->id === (int) $review->user_id || $user->isAdmin();
     }
 }

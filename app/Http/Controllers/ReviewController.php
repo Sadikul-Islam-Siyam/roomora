@@ -34,11 +34,11 @@ class ReviewController extends Controller
             return back()->withErrors(['review' => 'You have already reviewed this hotel.']);
         }
 
-        // User must have stayed at the hotel
+        // User must have a confirmed booking at the hotel
         $hasStayed = Auth::user()
             ->bookings()
             ->whereHas('room', fn($q) => $q->where('hotel_id', $hotel->id))
-            ->where('status', 'checked_out')
+            ->where('status', 'confirmed')
             ->exists();
 
         if (!$hasStayed) {

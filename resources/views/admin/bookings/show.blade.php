@@ -22,7 +22,7 @@
                         <dt class="col-sm-4">Guests</dt><dd class="col-sm-8">{{ $booking->guests }}</dd>
                         <dt class="col-sm-4">Total</dt><dd class="col-sm-8">৳{{ number_format($booking->total_price) }}</dd>
                     </dl>
-                    @if(is_array($booking->guest_details) && count($booking->guest_details))
+                    @if(($booking->guests ?? 1) > 1)
                         <hr>
                         <h6 class="mt-3">Guest Details</h6>
                         <table class="table table-sm mt-2">
@@ -36,9 +36,16 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($booking->guest_details as $i => $g)
+                                <tr>
+                                    <td>1</td>
+                                    <td>{{ $booking->guest_name }} <span class="badge bg-secondary">Primary</span></td>
+                                    <td>{{ $booking->guest_email }}</td>
+                                    <td>{{ $booking->guest_phone }}</td>
+                                    <td>{{ $booking->guest_nid ?? '—' }}</td>
+                                </tr>
+                                @foreach($booking->guest_details ?? [] as $i => $g)
                                     <tr>
-                                        <td>{{ $i + 1 }}</td>
+                                        <td>{{ $i + 2 }}</td>
                                         <td>{{ $g['name'] ?? '—' }}</td>
                                         <td>{{ $g['email'] ?? '—' }}</td>
                                         <td>{{ $g['phone'] ?? '—' }}</td>
@@ -59,7 +66,7 @@
                         @csrf
                         @method('PUT')
                         <select name="status" class="form-select mb-3">
-                            @foreach(['pending','confirmed','checked_in','checked_out','cancelled'] as $status)
+                            @foreach(['pending','confirmed','cancelled'] as $status)
                                 <option value="{{ $status }}" {{ $booking->status === $status ? 'selected' : '' }}>{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
                             @endforeach
                         </select>

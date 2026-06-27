@@ -20,6 +20,7 @@ class Room extends Model
     ];
 
     protected $casts = [
+        'hotel_id'     => 'integer',
         'price'        => 'decimal:2',
         'facilities'   => 'array',
         'images'       => 'array',

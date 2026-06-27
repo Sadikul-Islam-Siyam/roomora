@@ -53,6 +53,7 @@ class BookingController extends Controller
             'guest_name'       => ['required', 'string', 'max:100'],
             'guest_email'      => ['required', 'email', 'max:255'],
             'guest_phone'      => ['required', 'string', 'max:20'],
+            'guest_nid'        => ['required', 'string', 'max:50'],
             'special_requests' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -92,6 +93,7 @@ class BookingController extends Controller
                 'guest_name'       => strip_tags($validated['guest_name']),
                 'guest_email'      => $validated['guest_email'],
                 'guest_phone'      => $validated['guest_phone'],
+                'guest_nid'        => strip_tags($validated['guest_nid']),
                 'special_requests' => strip_tags($validated['special_requests'] ?? ''),
             ]);
         });

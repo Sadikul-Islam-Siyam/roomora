@@ -22,9 +22,10 @@ class BookingController extends Controller
             $query->where('status', $status);
         }
         if ($search = $request->get('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('booking_reference', 'like', "%{$search}%")
-                  ->orWhereHas('user', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+            $searchLower = mb_strtolower($search);
+            $query->where(function ($q) use ($searchLower) {
+                $q->where(\Illuminate\Support\Facades\DB::raw('LOWER(booking_reference)'), 'like', "%{$searchLower}%")
+                  ->orWhereHas('user', fn($sq) => $sq->where(\Illuminate\Support\Facades\DB::raw('LOWER(name)'), 'like', "%{$searchLower}%"));
             });
         }
         if ($from = $request->get('from')) {
@@ -52,7 +53,7 @@ class BookingController extends Controller
     {
         $oldStatus = $booking->status;
         $request->validate([
-            'status' => ['required', 'in:pending,confirmed,checked_in,checked_out,cancelled'],
+            'status' => ['required', 'in:pending,confirmed,cancelled'],
         ]);
 
         $newStatus = $request->status;

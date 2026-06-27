@@ -71,6 +71,10 @@
            href="{{ route('admin.reports') }}">
             <i class="bi bi-graph-up me-2"></i>Reports
         </a>
+        <a class="nav-link {{ request()->routeIs('admin.search-analytics') ? 'active' : '' }}"
+           href="{{ route('admin.search-analytics') }}">
+            <i class="bi bi-search me-2"></i>Search Analytics
+        </a>
 
         <div class="sidebar-section mt-2">Account</div>
         <a class="nav-link" href="{{ route('hotels.index') }}" target="_blank">

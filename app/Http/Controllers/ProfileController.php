@@ -18,15 +18,18 @@ class ProfileController extends Controller
     public function show()
     {
         $user = Auth::user()->load([
+            'bookings' => function ($query) {
+                $query->where('status', 'confirmed')->latest();
+            },
             'bookings.room.hotel',
             'reviews.hotel',
             'favoriteHotels',
         ]);
 
         $bookingStats = [
-            'total'     => $user->bookings()->count(),
-            'upcoming'  => $user->bookings()->upcoming()->count(),
-            'completed' => $user->bookings()->where('status', 'checked_out')->count(),
+            'total'     => $user->bookings()->where('status', 'confirmed')->count(),
+            'upcoming'  => $user->bookings()->where('status', 'confirmed')->where('check_in', '>=', today())->count(),
+            'completed' => $user->bookings()->where('status', 'confirmed')->where('check_out', '<', today())->count(),
             'cancelled' => $user->bookings()->where('status', 'cancelled')->count(),
         ];
 
@@ -82,6 +85,7 @@ class ProfileController extends Controller
     {
         $bookings = Auth::user()
             ->bookings()
+            ->where('status', 'confirmed')
             ->with(['room.hotel'])
             ->latest()
             ->paginate(10);
